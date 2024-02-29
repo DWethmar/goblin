@@ -2,7 +2,7 @@ package actor
 
 import "github.com/dwethmar/tards/pkg/es"
 
-const CreateCommandType = "create"
+const CreateCommandType = "actor.create"
 
 var _ es.Command = &CreateCommand{}
 
@@ -15,7 +15,7 @@ func (c *CreateCommand) AggregateID() string   { return c.ActorID }
 func (c *CreateCommand) CommandType() string   { return CreateCommandType }
 func (c *CreateCommand) AggregateType() string { return AggregateType }
 
-const MoveCommandType = "move"
+const MoveCommandType = "actor.move"
 
 var _ es.Command = &CreateCommand{}
 

@@ -1,6 +1,6 @@
 package actor
 
-const CreatedEventType = "created"
+const CreatedEventType = "actor.created"
 
 type CreatedEventData struct {
 	Name string

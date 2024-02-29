@@ -1,6 +1,9 @@
 package es
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type Aggregate struct {
 	ID             string
@@ -9,12 +12,12 @@ type Aggregate struct {
 	Events         []*Event
 	Model          interface{}
 	Created        bool
-	commandHandler CommandHandler
-	eventHandler   EventHandler
+	CommandHandler CommandHandler
+	EventHandler   EventHandler
 }
 
 func (a *Aggregate) HandleCommand(command Command) (*Event, error) {
-	event, err := a.commandHandler.Dispatch(command)
+	event, err := a.CommandHandler.HandleCommand(command)
 	if err != nil {
 		return nil, fmt.Errorf("failed to dispatch command: %w", err)
 	}
@@ -23,9 +26,11 @@ func (a *Aggregate) HandleCommand(command Command) (*Event, error) {
 }
 
 func (a *Aggregate) HandleEvent(event *Event) error {
-	if a.eventHandler != nil {
-		if err := a.eventHandler.HandleEvent(event); err != nil {
-			return err
+	if a.EventHandler == nil {
+		return errors.New("event handler is nil")
+	} else {
+		if err := a.EventHandler.HandleEvent(event); err != nil {
+			return fmt.Errorf("failed to handle event: %w", err)
 		}
 
 		a.Events = append(a.Events, event)

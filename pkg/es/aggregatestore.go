@@ -18,6 +18,10 @@ func (s *AggregateStore) Get(aggregateType, aggregateID string) (*Aggregate, err
 		return nil, fmt.Errorf("failed to create aggregate: %w", err)
 	}
 
+	if len(events) == 0 {
+		return aggregate, nil
+	}
+
 	for _, event := range events {
 		if err := aggregate.HandleEvent(event); err != nil {
 			return nil, fmt.Errorf("failed to handle event: %w", err)

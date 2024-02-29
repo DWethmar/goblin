@@ -1,23 +1,22 @@
 package actor
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/dwethmar/tards/pkg/es"
 )
 
 const AggregateType = "actor"
 
-type Model struct {
+type Actor struct {
 	Name string
 }
 
-func HandleCommand(cmd es.Command, a *es.Aggregate) (*es.Event, error) {
-	_, ok := a.Model.(*Model)
-	if !ok {
-		return nil, errors.New("invalid model")
-	}
+type CommandHandler struct {
+	Actor *Actor
+}
 
+func (h *CommandHandler) HandleCommand(cmd es.Command) (*es.Event, error) {
 	switch c := cmd.(type) {
 	case *CreateCommand:
 		return &es.Event{
@@ -32,29 +31,19 @@ func HandleCommand(cmd es.Command, a *es.Aggregate) (*es.Event, error) {
 	return nil, nil
 }
 
-func HandleEvent(event *es.Event, a *es.Aggregate) error {
-	if event == nil {
-		return errors.New("event is nil")
-	}
+type EventHandler struct {
+	Actor *Actor
+}
 
-	if a == nil {
-		return errors.New("aggregate is nil")
-	}
-
-	m, ok := a.Model.(*Model)
-	if !ok {
-		return errors.New("invalid model")
-	}
-
+func (h *EventHandler) HandleEvent(event *es.Event) error {
 	switch event.Type {
 	case CreatedEventType:
 		data, ok := event.Data.(CreatedEventData)
 		if !ok {
-			return errors.New("invalid event data")
+			return fmt.Errorf("invalid event data type: %T", event.Data)
 		}
 
-		a.Created = true
-		m.Name = data.Name
+		h.Actor.Name = data.Name
 	}
 
 	return nil
