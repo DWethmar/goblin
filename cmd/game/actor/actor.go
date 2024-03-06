@@ -3,22 +3,23 @@ package actor
 import (
 	"fmt"
 
-	"github.com/dwethmar/tards/pkg/es"
+	"github.com/dwethmar/goblin/pkg/es"
 )
 
 const AggregateType = "actor"
 
 type Actor struct {
-	Name string
+	Name    string
+	created bool
 }
 
-type CommandHandler struct {
-	Actor *Actor
-}
-
-func (h *CommandHandler) HandleCommand(cmd es.Command) (*es.Event, error) {
+func (a *Actor) HandleCommand(cmd es.Command) (*es.Event, error) {
 	switch c := cmd.(type) {
 	case *CreateCommand:
+		if a.created {
+			return nil, fmt.Errorf("actor already created")
+		}
+
 		return &es.Event{
 			AggregateID: c.ActorID,
 			Type:        CreatedEventType,
@@ -31,11 +32,7 @@ func (h *CommandHandler) HandleCommand(cmd es.Command) (*es.Event, error) {
 	return nil, nil
 }
 
-type EventHandler struct {
-	Actor *Actor
-}
-
-func (h *EventHandler) HandleEvent(event *es.Event) error {
+func (a *Actor) HandleEvent(event *es.Event) error {
 	switch event.Type {
 	case CreatedEventType:
 		data, ok := event.Data.(CreatedEventData)
@@ -43,7 +40,8 @@ func (h *EventHandler) HandleEvent(event *es.Event) error {
 			return fmt.Errorf("invalid event data type: %T", event.Data)
 		}
 
-		h.Actor.Name = data.Name
+		a.Name = data.Name
+		a.created = true
 	}
 
 	return nil

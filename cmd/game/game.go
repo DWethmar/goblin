@@ -1,57 +1,57 @@
 package game
 
 import (
-	"encoding/json"
 	"fmt"
 	"log/slog"
 
-	"github.com/dwethmar/tards/cmd/game/actor"
-	"github.com/dwethmar/tards/pkg/es"
-	"github.com/dwethmar/tards/pkg/es/file"
+	"github.com/dwethmar/goblin/cmd/game/actor"
+	"github.com/dwethmar/goblin/pkg/es"
+	"github.com/dwethmar/goblin/pkg/es/aggregate"
+	eventEncoding "github.com/dwethmar/goblin/pkg/es/event/gobenc"
+	eventkv "github.com/dwethmar/goblin/pkg/es/event/kv"
+	kvbolt "github.com/dwethmar/goblin/pkg/kv/bbolt"
+
+	bolt "go.etcd.io/bbolt"
 )
 
 type Options struct {
 	Logger *slog.Logger
+	Path   string
 }
 
 func Run(opt Options) error {
 	logger := opt.Logger
+	bucket := []byte("events")
+	db, err := bolt.Open(opt.Path, 0600, nil)
+	if err != nil {
+		return fmt.Errorf("opening db: %w", err)
+	}
+	defer db.Close()
 
-	// eventRepo := memory.NewEventRepository()
-	eventRepo := file.NewEventRepository(
-		map[string]func(*file.LogEntry) *es.Event{
-			actor.CreatedEventType: func(le *file.LogEntry) *es.Event {
-				var data actor.CreatedEventData
-				if err := json.Unmarshal(le.Data, &data); err != nil {
-					logger.Error("unmarshal", "error", err)
-					return nil
-				}
+	if err := db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists(bucket)
+		return err
+	}); err != nil {
+		return fmt.Errorf("creating bucket: %w", err)
+	}
 
-				return &es.Event{
-					AggregateID: le.AggregateID,
-					Type:        le.Type,
-					Data:        data,
-				}
-			},
-		},
-	)
+	eventStore := eventkv.New(kvbolt.New(bucket, db), &eventEncoding.Decoder{}, &eventEncoding.Encoder{})
 
-	aggregateFactory := es.NewAggregateFactory()
+	aggregateFactory := aggregate.NewFactory()
 
 	// Register the factories
 	actor.RegisterFactory(aggregateFactory)
 
-	aggregateStore := es.NewAggregateStore(eventRepo, aggregateFactory)
+	aggregateStore := aggregate.NewStore(eventStore, aggregateFactory)
 
 	eventBus := es.NewEventBus()
 
 	commandBus := es.NewCommandBus(aggregateStore, eventBus)
 
-	err := commandBus.Dispatch(&actor.CreateCommand{
+	if err := commandBus.Dispatch(&actor.CreateCommand{
 		ActorID: "99",
 		Name:    "test",
-	})
-	if err != nil {
+	}); err != nil {
 		return fmt.Errorf("dispatching command: %w", err)
 	}
 

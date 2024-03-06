@@ -7,14 +7,14 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/dwethmar/tards/cmd/game"
+	"github.com/dwethmar/goblin/cmd/game"
 	"github.com/spf13/cobra"
 )
 
 // runCmd represents the run command
 var runCmd = &cobra.Command{
 	Use:   "run",
-	Short: "A brief description of your command",
+	Short: "run a command on the goblin game",
 	Long:  `A longer description`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger := slog.Default()
@@ -22,6 +22,7 @@ var runCmd = &cobra.Command{
 
 		if err := game.Run(game.Options{
 			Logger: logger,
+			Path:   ".tmp/goblin.db",
 		}); err != nil {
 			return fmt.Errorf("running game: %w", err)
 		}

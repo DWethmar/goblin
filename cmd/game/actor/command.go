@@ -1,6 +1,6 @@
 package actor
 
-import "github.com/dwethmar/tards/pkg/es"
+import "github.com/dwethmar/goblin/pkg/es"
 
 const CreateCommandType = "actor.create"
 

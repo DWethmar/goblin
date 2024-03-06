@@ -3,10 +3,11 @@ package memory
 import (
 	"sync"
 
-	"github.com/dwethmar/tards/pkg/es"
+	"github.com/dwethmar/goblin/pkg/es"
+	"github.com/dwethmar/goblin/pkg/es/event"
 )
 
-var _ es.EventStore = &EventRepository{}
+var _ event.Store = &EventRepository{}
 
 type EventRepository struct {
 	eventsMux sync.Mutex

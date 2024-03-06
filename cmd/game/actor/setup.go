@@ -1,18 +1,18 @@
 package actor
 
-import "github.com/dwethmar/tards/pkg/es"
+import (
+	"github.com/dwethmar/goblin/pkg/es"
+	"github.com/dwethmar/goblin/pkg/es/aggregate"
+)
 
-func RegisterFactory(f *es.AggregateFactory) error {
+func RegisterFactory(f *aggregate.Factory) error {
 	f.Register(AggregateType, func(aggregateID string) *es.Aggregate {
 		actor := &Actor{}
 		return &es.Aggregate{
-			ID:             aggregateID,
-			Type:           AggregateType,
-			Model:          actor,
-			Events:         []*es.Event{},
-			Created:        false,
-			CommandHandler: &CommandHandler{Actor: actor},
-			EventHandler:   &EventHandler{Actor: actor},
+			ID:     aggregateID,
+			Type:   AggregateType,
+			Model:  actor,
+			Events: []*es.Event{},
 		}
 	})
 	return nil

@@ -10,7 +10,7 @@ var (
 )
 
 type CommandBus struct {
-	aggregateStore *AggregateStore
+	aggregateStore AggregateStore
 	eventBus       *EventBus
 }
 
@@ -49,7 +49,7 @@ func (b *CommandBus) Dispatch(command Command) error {
 }
 
 // NewCommandBus returns a new instance of CommandBus.
-func NewCommandBus(aggregateStore *AggregateStore, eventBus *EventBus) *CommandBus {
+func NewCommandBus(aggregateStore AggregateStore, eventBus *EventBus) *CommandBus {
 	return &CommandBus{
 		aggregateStore: aggregateStore,
 		eventBus:       eventBus,
