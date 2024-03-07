@@ -87,38 +87,62 @@ func TestAggregate_HandleCommand(t *testing.T) {
 }
 
 func TestAggregate_HandleEvent(t *testing.T) {
-	type fields struct {
-		ID      string
-		Type    string
-		Events  []*Event
-		Model   AggregateModel
-		Version int
-		Created bool
-	}
-	type args struct {
-		event *Event
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			a := &Aggregate{
-				ID:      tt.fields.ID,
-				Type:    tt.fields.Type,
-				Events:  tt.fields.Events,
-				Model:   tt.fields.Model,
-				Version: tt.fields.Version,
-				Created: tt.fields.Created,
-			}
-			if err := a.HandleEvent(tt.args.event); (err != nil) != tt.wantErr {
-				t.Errorf("Aggregate.HandleEvent() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
+	t.Run("invalid version", func(t *testing.T) {
+		a := &Aggregate{}
+		err := a.HandleEvent(&Event{Version: 2})
+		if err == nil {
+			t.Error("expected error")
+		}
+	})
+
+	t.Run("model is nil", func(t *testing.T) {
+		a := &Aggregate{}
+		err := a.HandleEvent(&Event{Version: 1})
+		if err == nil {
+			t.Error("expected error")
+		}
+	})
+
+	t.Run("model is not nil", func(t *testing.T) {
+		a := &Aggregate{
+			Model: &mockModel{
+				handleEvent: func(event *Event) error {
+					return nil
+				},
+			},
+		}
+		err := a.HandleEvent(&Event{Version: 1})
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("version is updated", func(t *testing.T) {
+		a := &Aggregate{
+			Model: &mockModel{
+				handleEvent: func(event *Event) error {
+					return nil
+				},
+			},
+			Version: 0,
+		}
+		a.HandleEvent(&Event{Version: 1})
+		if a.Version != 1 {
+			t.Errorf("unexpected version: %d", a.Version)
+		}
+	})
+
+	t.Run("failed to handle event", func(t *testing.T) {
+		a := &Aggregate{
+			Model: &mockModel{
+				handleEvent: func(event *Event) error {
+					return errors.New("failed to handle event")
+				},
+			},
+		}
+		err := a.HandleEvent(&Event{Version: 1})
+		if err == nil {
+			t.Error("expected error")
+		}
+	})
 }
