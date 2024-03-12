@@ -1,4 +1,4 @@
-package gobenc
+package encoding
 
 import (
 	"bytes"

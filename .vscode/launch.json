@@ -12,6 +12,9 @@
             "program": "${workspaceFolder}",
             "args": [
                 "dispatch",
+                "-a 1",
+                "crta",
+                "toet",
             ]
         }
     ]

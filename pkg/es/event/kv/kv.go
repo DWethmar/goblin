@@ -8,7 +8,9 @@ import (
 	"github.com/dwethmar/goblin/pkg/kv"
 )
 
-type Repository struct {
+var _ event.Store = &Store{}
+
+type Store struct {
 	kv           kv.DB
 	eventDecoder event.Decoder
 	eventEncoder event.Encoder
@@ -22,7 +24,7 @@ func eventIDPrefix(aggregateID string) []byte {
 	return []byte(fmt.Sprintf("%s-", aggregateID))
 }
 
-func (r *Repository) Add(events []*es.Event) error {
+func (r *Store) Add(events []*es.Event) error {
 	for _, event := range events {
 		b, err := r.eventEncoder.Encode(event)
 		if err != nil {
@@ -37,7 +39,7 @@ func (r *Repository) Add(events []*es.Event) error {
 	return nil
 }
 
-func (r *Repository) List(aggregateID string) ([]*es.Event, error) {
+func (r *Store) List(aggregateID string) ([]*es.Event, error) {
 	var events []*es.Event
 	if err := r.kv.IterateWithPrefix(eventIDPrefix(aggregateID), func(k, v []byte) error {
 		event, err := r.eventDecoder.Decode(v)
@@ -56,8 +58,8 @@ func (r *Repository) List(aggregateID string) ([]*es.Event, error) {
 func New(kv kv.DB,
 	eventDecoder event.Decoder,
 	eventEncoder event.Encoder,
-) *Repository {
-	return &Repository{
+) *Store {
+	return &Store{
 		kv:           kv,
 		eventDecoder: eventDecoder,
 		eventEncoder: eventEncoder,
