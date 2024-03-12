@@ -6,9 +6,12 @@ import (
 )
 
 type mockModel struct {
+	ID            string
 	handleCommand func(command Command) (*Event, error)
 	handleEvent   func(event *Event) error
 }
+
+func (m *mockModel) AggregateID() string { return m.ID }
 
 func (m *mockModel) HandleCommand(command Command) (*Event, error) {
 	return m.handleCommand(command)

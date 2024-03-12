@@ -1,5 +1,7 @@
 package es
 
+import "fmt"
+
 // handlerMatcherPair struct to associate a matcher with an event handler.
 type handlerMatcherPair struct {
 	matcher Matcher
@@ -18,12 +20,13 @@ func (bus *EventBus) Subscribe(matcher Matcher, handler EventHandler) {
 // Publish publishes the event to the EventBus.
 func (bus *EventBus) Publish(event *Event) error {
 	for _, pair := range bus.handlers {
-		if pair.matcher.Match(*event) {
+		if pair.matcher.Match(event) {
 			if err := pair.handler.HandleEvent(event); err != nil {
-				return err
+				return fmt.Errorf("handle event: %w", err)
 			}
 		}
 	}
+
 	return nil
 }
 

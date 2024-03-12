@@ -14,8 +14,12 @@ type Repository struct {
 	eventEncoder event.Encoder
 }
 
-func (r *Repository) eventID(aggregateID string, version int) string {
-	return fmt.Sprintf("%s-%d", aggregateID, version)
+func eventID(aggregateID string, version int) []byte {
+	return []byte(fmt.Sprintf("%s-%d", aggregateID, version))
+}
+
+func eventIDPrefix(aggregateID string) []byte {
+	return []byte(fmt.Sprintf("%s-", aggregateID))
 }
 
 func (r *Repository) Add(events []*es.Event) error {
@@ -25,7 +29,7 @@ func (r *Repository) Add(events []*es.Event) error {
 			return fmt.Errorf("encoding event: %w", err)
 		}
 
-		if err := r.kv.Put([]byte(event.AggregateID), b); err != nil {
+		if err := r.kv.Put(eventID(event.AggregateID, event.Version), b); err != nil {
 			return fmt.Errorf("putting event: %w", err)
 		}
 	}
@@ -35,7 +39,7 @@ func (r *Repository) Add(events []*es.Event) error {
 
 func (r *Repository) List(aggregateID string) ([]*es.Event, error) {
 	var events []*es.Event
-	if err := r.kv.IterateWithPrefix([]byte(aggregateID), func(k, v []byte) error {
+	if err := r.kv.IterateWithPrefix(eventIDPrefix(aggregateID), func(k, v []byte) error {
 		event, err := r.eventDecoder.Decode(v)
 		if err != nil {
 			return fmt.Errorf("decoding event: %w", err)

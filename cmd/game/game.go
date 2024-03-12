@@ -1,66 +1,40 @@
 package game
 
 import (
-	"fmt"
+	"context"
 	"log/slog"
 
-	"github.com/dwethmar/goblin/cmd/game/actor"
-	"github.com/dwethmar/goblin/pkg/es"
-	"github.com/dwethmar/goblin/pkg/es/aggregate"
-	eventEncoding "github.com/dwethmar/goblin/pkg/es/event/gobenc"
-	eventkv "github.com/dwethmar/goblin/pkg/es/event/kv"
-	kvbolt "github.com/dwethmar/goblin/pkg/kv/bbolt"
-
-	bolt "go.etcd.io/bbolt"
+	"github.com/dwethmar/goblin/pkg/services"
 )
 
 type Options struct {
-	Logger *slog.Logger
-	Path   string
+	Logger       *slog.Logger
+	ActorService *services.Actors
 }
 
-func Run(opt Options) error {
+type Game struct {
+	logger       *slog.Logger
+	ActorService *services.Actors
+}
+
+func New(opt Options) *Game {
 	logger := opt.Logger
-	bucket := []byte("events")
-	db, err := bolt.Open(opt.Path, 0600, nil)
+
+	g := &Game{
+		logger:       logger,
+		ActorService: opt.ActorService,
+	}
+
+	if err := g.ActorService.CreateActor("1", "test"); err != nil {
+		logger.Error("creating actor", "err", err)
+	}
+
+	a, err := g.ActorService.GetActor(context.Background(), "1")
 	if err != nil {
-		return fmt.Errorf("opening db: %w", err)
-	}
-	defer db.Close()
-
-	if err := db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists(bucket)
-		return err
-	}); err != nil {
-		return fmt.Errorf("creating bucket: %w", err)
+		logger.Error("get actor", "err", err)
 	}
 
-	eventStore := eventkv.New(kvbolt.New(bucket, db), &eventEncoding.Decoder{}, &eventEncoding.Encoder{})
+	logger.Info("actor", "actor", a)
 
-	aggregateFactory := aggregate.NewFactory()
-
-	// Register the factories
-	actor.RegisterFactory(aggregateFactory)
-
-	aggregateStore := aggregate.NewStore(eventStore, aggregateFactory)
-
-	eventBus := es.NewEventBus()
-
-	commandBus := es.NewCommandBus(aggregateStore, eventBus)
-
-	if err := commandBus.Dispatch(&actor.CreateCommand{
-		ActorID: "99",
-		Name:    "test",
-	}); err != nil {
-		return fmt.Errorf("dispatching command: %w", err)
-	}
-
-	actor, err := aggregateStore.Get(actor.AggregateType, "99")
-	if err != nil {
-		return fmt.Errorf("getting actor: %w", err)
-	}
-
-	logger.Info("actor", "model", actor.Model, "aggregate", actor)
-
-	return nil
+	return g
 }

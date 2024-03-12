@@ -17,7 +17,7 @@ type Store struct {
 func (s *Store) Get(aggregateType, aggregateID string) (*es.Aggregate, error) {
 	events, err := s.eventStore.List(aggregateID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to list events: %w", err)
 	}
 
 	aggregate, err := s.factory.Create(aggregateType, aggregateID)
@@ -31,7 +31,7 @@ func (s *Store) Get(aggregateType, aggregateID string) (*es.Aggregate, error) {
 
 	for _, event := range events {
 		if err := aggregate.HandleEvent(event); err != nil {
-			return nil, fmt.Errorf("failed to handle event: %w", err)
+			return nil, fmt.Errorf("failed to handle event on aggregate: %w", err)
 		}
 	}
 
