@@ -3,26 +3,28 @@ package es
 import (
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestCommandBus_Dispatch(t *testing.T) {
 	t.Run("should dispatch command", func(t *testing.T) {
 		aggregateStore := &MockAggregateStore{
-			GetFunc: func(aggregateType, aggregateID string) (*Aggregate, error) {
-				return &Aggregate{
-					Model: &mockModel{
-						handleCommand: func(command Command) (*Event, error) {
-							return &Event{}, nil
-						},
-						handleEvent: func(event *Event) error {
-							return nil
-						},
+			GetFunc: func(aggregateType, aggregateID string) (Aggregate, error) {
+				return &MockAggregate{
+					ID: "1",
+					CommandHandlerFunc: func(c Command) (*Event, error) {
+						return &Event{
+							AggregateID: "1",
+							Type:        "test",
+							Data:        "test",
+							Version:     1,
+							CreatedAt:   time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+						}, nil
 					},
+					EventHandlerFunc: func(e *Event) error { return nil },
 				}, nil
 			},
-			SaveFunc: func(p0 *Aggregate) error {
-				return nil
-			},
+			SaveFunc: func(p0 Aggregate) error { return nil },
 		}
 
 		eventBus := &EventBus{}
@@ -35,22 +37,16 @@ func TestCommandBus_Dispatch(t *testing.T) {
 }
 
 func TestNewCommandBus(t *testing.T) {
-	type args struct {
-		aggregateStore AggregateStore
-		eventBus       *EventBus
-	}
-	tests := []struct {
-		name string
-		args args
-		want *CommandBus
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := NewCommandBus(tt.args.aggregateStore, tt.args.eventBus); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewCommandBus() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+	t.Run("should return new instance of CommandBus", func(t *testing.T) {
+		aggregateStore := &MockAggregateStore{}
+		eventBus := &EventBus{}
+		got := NewCommandBus(aggregateStore, eventBus)
+		want := &CommandBus{
+			aggregateStore: aggregateStore,
+			eventBus:       eventBus,
+		}
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("NewCommandBus() = %v, want %v", got, want)
+		}
+	})
 }

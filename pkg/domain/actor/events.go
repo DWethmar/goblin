@@ -7,6 +7,10 @@ type CreatedEventData struct {
 	X, Y int
 }
 
+const DestroyedEventType = "actor.destroyed"
+
+type DestroyedEventData struct{}
+
 const MovedEventType = "actor.moved"
 
 type MovedEventData struct {

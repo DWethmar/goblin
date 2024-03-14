@@ -7,6 +7,8 @@ import (
 	"github.com/dwethmar/goblin/pkg/es"
 )
 
+var _ es.Aggregate = &Actor{}
+
 const AggregateType = "actor"
 
 type State int
@@ -20,13 +22,17 @@ const (
 )
 
 type Actor struct {
-	ID    string
-	Name  string
-	X, Y  int
-	state State
+	ID      string
+	Version int
+	Name    string
+	X, Y    int
+
+	events []*es.Event
+	state  State
 }
 
-func (a *Actor) AggregateID() string { return a.ID }
+func (a *Actor) AggregateID() string   { return a.ID }
+func (a *Actor) AggregateVersion() int { return a.Version }
 
 func (a *Actor) HandleCommand(cmd es.Command) (*es.Event, error) {
 	if StateDeleted.Is(a.state) {
@@ -47,7 +53,8 @@ func (a *Actor) HandleCommand(cmd es.Command) (*es.Event, error) {
 				X:    c.X,
 				Y:    c.Y,
 			},
-			Created: time.Now(),
+			Version:   a.Version + 1,
+			CreatedAt: time.Now(),
 		}, nil
 	case *MoveCommand:
 		return &es.Event{
@@ -57,7 +64,8 @@ func (a *Actor) HandleCommand(cmd es.Command) (*es.Event, error) {
 				X: c.X,
 				Y: c.Y,
 			},
-			Created: time.Now(),
+			Version:   a.Version + 1,
+			CreatedAt: time.Now(),
 		}, nil
 	}
 
@@ -76,6 +84,14 @@ func (a *Actor) HandleEvent(event *es.Event) error {
 		a.Name = data.Name
 		a.state = StateCreated
 
+	case DestroyedEventType:
+		_, ok := event.Data.(*DestroyedEventData)
+		if !ok {
+			return fmt.Errorf("expected *DestroyedEventData, got %T", event.Data)
+		}
+
+		a.state = StateDeleted
+
 	case MovedEventType:
 		data, ok := event.Data.(*MovedEventData)
 		if !ok {
@@ -86,7 +102,11 @@ func (a *Actor) HandleEvent(event *es.Event) error {
 		a.Y = data.Y
 	}
 
+	a.Version = event.Version
+	a.events = append(a.events, event)
 	return nil
 }
 
-func (a *Actor) Deleted() bool { return StateDeleted.Is(a.state) }
+func (a *Actor) AggregateEvents() []*es.Event { return a.events }
+func (a *Actor) ClearAggregateEvents()        { a.events = []*es.Event{} }
+func (a *Actor) Deleted() bool                { return StateDeleted.Is(a.state) }

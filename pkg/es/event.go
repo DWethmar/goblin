@@ -7,5 +7,5 @@ type Event struct {
 	Type        string
 	Data        interface{}
 	Version     int
-	Created     time.Time
+	CreatedAt   time.Time
 }

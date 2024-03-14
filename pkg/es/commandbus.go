@@ -37,14 +37,13 @@ func (b *CommandBus) Dispatch(command Command) error {
 		return fmt.Errorf("failed to save aggregate: %w", err)
 	}
 
-	for _, event := range aggregate.Events {
+	for _, event := range aggregate.AggregateEvents() {
 		if err := b.eventBus.Publish(event); err != nil {
 			return fmt.Errorf("failed to publish event: %w", err)
 		}
 	}
 
-	clear(aggregate.Events)
-
+	aggregate.ClearAggregateEvents()
 	return nil
 }
 
