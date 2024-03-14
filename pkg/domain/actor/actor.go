@@ -26,9 +26,9 @@ type Actor struct {
 	Version int
 	Name    string
 	X, Y    int
+	state   State
 
 	events []*es.Event
-	state  State
 }
 
 func (a *Actor) AggregateID() string   { return a.ID }
@@ -83,21 +83,17 @@ func (a *Actor) HandleEvent(event *es.Event) error {
 		a.ID = event.AggregateID
 		a.Name = data.Name
 		a.state = StateCreated
-
 	case DestroyedEventType:
 		_, ok := event.Data.(*DestroyedEventData)
 		if !ok {
 			return fmt.Errorf("expected *DestroyedEventData, got %T", event.Data)
 		}
-
 		a.state = StateDeleted
-
 	case MovedEventType:
 		data, ok := event.Data.(*MovedEventData)
 		if !ok {
 			return fmt.Errorf("expected *MovedEventData, got %T", event.Data)
 		}
-
 		a.X = data.X
 		a.Y = data.Y
 	}

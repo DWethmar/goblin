@@ -12,7 +12,7 @@ type Actors struct {
 	commandBus *es.CommandBus
 }
 
-func (a *Actors) CreateActor(id string, name string) error {
+func (a *Actors) Create(id string, name string) error {
 	cmd := &actor.CreateCommand{
 		ActorID: id,
 		Name:    name,
@@ -21,7 +21,7 @@ func (a *Actors) CreateActor(id string, name string) error {
 	return a.commandBus.Dispatch(cmd)
 }
 
-func (a *Actors) GetActor(ctx context.Context, id string) (*actor.Actor, error) {
+func (a *Actors) Get(ctx context.Context, id string) (*actor.Actor, error) {
 	return a.repo.Get(ctx, id)
 }
 

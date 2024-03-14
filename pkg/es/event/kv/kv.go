@@ -25,15 +25,21 @@ func eventIDPrefix(aggregateID string) []byte {
 }
 
 func (r *Store) Add(events []*es.Event) error {
-	for _, event := range events {
+	entries := make([]kv.Entry, len(events))
+	for i, event := range events {
 		b, err := r.eventEncoder.Encode(event)
 		if err != nil {
 			return fmt.Errorf("encoding event: %w", err)
 		}
 
-		if err := r.kv.Put(eventID(event.AggregateID, event.Version), b); err != nil {
-			return fmt.Errorf("putting event: %w", err)
+		entries[i] = kv.Entry{
+			Key:   eventID(event.AggregateID, event.Version),
+			Value: b,
 		}
+	}
+
+	if err := r.kv.Put(entries...); err != nil {
+		return fmt.Errorf("putting event: %w", err)
 	}
 
 	return nil

@@ -27,21 +27,25 @@ type Game struct {
 
 func (g *Game) ExecStringCommand(ctx context.Context, cmdStr string) error {
 	args := strings.Split(cmdStr, " ")
+	fmt.Printf("args: %v\n", args)
 
 	if len(args) < 2 {
 		return fmt.Errorf("command is invalid")
 	}
 
 	cmd := args[0]
-	agregateID := args[1]
-
-	if agregateID == "" {
-		return fmt.Errorf("aggregate id is required")
-	}
 
 	switch cmd {
-	case "crta":
-		return g.CreateActor(agregateID, args[0])
+	case "create":
+		switch args[1] {
+		case "actor":
+			if len(args) < 4 {
+				return fmt.Errorf("command is invalid")
+			}
+			id := args[2]
+			name := args[3]
+			return g.actorService.Create(id, name)
+		}
 	}
 
 	return fmt.Errorf("unknown command: %s", cmd)

@@ -38,12 +38,17 @@ func (s *Store) Get(aggregateType, aggregateID string) (es.Aggregate, error) {
 	return aggregate, nil
 }
 
-func (s *Store) Save(a es.Aggregate) error {
-	if len(a.AggregateEvents()) == 0 {
+func (s *Store) Save(a ...es.Aggregate) error {
+	var events []*es.Event
+	for _, aggregate := range a {
+		events = append(events, aggregate.AggregateEvents()...)
+	}
+
+	if len(events) == 0 {
 		return nil
 	}
 
-	if err := s.eventStore.Add(a.AggregateEvents()); err != nil {
+	if err := s.eventStore.Add(events); err != nil {
 		return fmt.Errorf("failed to save events: %w", err)
 	}
 

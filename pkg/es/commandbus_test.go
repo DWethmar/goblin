@@ -24,7 +24,7 @@ func TestCommandBus_Dispatch(t *testing.T) {
 					EventHandlerFunc: func(e *Event) error { return nil },
 				}, nil
 			},
-			SaveFunc: func(p0 Aggregate) error { return nil },
+			SaveFunc: func(_ ...Aggregate) error { return nil },
 		}
 
 		eventBus := &EventBus{}
