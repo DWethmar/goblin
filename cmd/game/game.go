@@ -53,7 +53,7 @@ func New(ctx context.Context, opt Options) (*Game, error) {
 	commandBus := es.NewCommandBus(aggregateStore, eventBus)
 
 	// replay all events and rebuild the state
-	replayer := replay.New(opt.EventStore, eventBus)
+	replayer := replay.New(logger, opt.EventStore, eventBus)
 	if err := replayer.Replay(ctx); err != nil {
 		return nil, fmt.Errorf("replaying events: %w", err)
 	}

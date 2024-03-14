@@ -2,6 +2,7 @@ package actor
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/dwethmar/goblin/pkg/es"
 )
@@ -43,6 +44,7 @@ func (a *Actor) HandleCommand(cmd es.Command) (*es.Event, error) {
 			Data: &CreatedEventData{
 				Name: c.Name,
 			},
+			Created: time.Now(),
 		}, nil
 	}
 

@@ -28,6 +28,12 @@ var dispatchCmd = &cobra.Command{
 	Short: "Dispatch a command",
 	Long:  `A longer description`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		logHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+			Level:     slog.LevelDebug,
+			AddSource: true,
+		})
+		logger := slog.New(logHandler)
+
 		dirName := "./.tmp"
 		if _, err := os.Stat(dirName); os.IsNotExist(err) {
 			if err := os.Mkdir(dirName, 0700); err != nil {
@@ -46,7 +52,7 @@ var dispatchCmd = &cobra.Command{
 		eventStore := eventkv.New(bbolt.New(bucket, db), &eventEncoding.Decoder{}, &eventEncoding.Encoder{})
 
 		g, err := game.New(cmd.Context(), game.Options{
-			Logger:     slog.Default(),
+			Logger:     logger,
 			EventStore: eventStore,
 		})
 		if err != nil {

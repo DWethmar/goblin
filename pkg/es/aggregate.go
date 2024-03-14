@@ -21,6 +21,7 @@ type Aggregate struct {
 
 func (a *Aggregate) AggregateID() string { return a.Model.AggregateID() }
 
+// HandleCommand handles a command and returns an event
 func (a *Aggregate) HandleCommand(command Command) (*Event, error) {
 	if a.Model == nil {
 		return nil, errors.New("model is nil")
@@ -39,6 +40,7 @@ func (a *Aggregate) HandleCommand(command Command) (*Event, error) {
 	return event, nil
 }
 
+// HandleEvent handles an event and updates the aggregate
 func (a *Aggregate) HandleEvent(event *Event) error {
 	if event.Version != a.Version+1 {
 		return fmt.Errorf("invalid version: %d, expected: %d", event.Version, a.Version+1)
