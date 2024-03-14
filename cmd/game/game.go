@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/dwethmar/goblin/pkg/domain/actor"
 	actorMemory "github.com/dwethmar/goblin/pkg/domain/actor/memory"
@@ -24,7 +25,16 @@ type Game struct {
 	actorService *services.Actors
 }
 
-func (g *Game) DispatchStringCommand(ctx context.Context, agregateID, cmd string, args ...string) error {
+func (g *Game) ExecStringCommand(ctx context.Context, cmdStr string) error {
+	args := strings.Split(cmdStr, " ")
+
+	if len(args) < 2 {
+		return fmt.Errorf("command is invalid")
+	}
+
+	cmd := args[0]
+	agregateID := args[1]
+
 	if agregateID == "" {
 		return fmt.Errorf("aggregate id is required")
 	}

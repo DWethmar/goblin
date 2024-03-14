@@ -4,15 +4,12 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"bufio"
+	"context"
 	"fmt"
-	"io"
-	"log"
 	"log/slog"
 	"os"
+	"os/signal"
 	"path"
-	"strings"
-	"syscall"
 
 	"github.com/dwethmar/goblin/cmd/game"
 	eventEncoding "github.com/dwethmar/goblin/pkg/es/event/encoding"
@@ -34,10 +31,12 @@ var execCmd = &cobra.Command{
 	Short: "exec a command to the game",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-			Level:     slog.LevelDebug,
-			AddSource: true,
+			Level: slog.LevelDebug,
 		})
 		logger := slog.New(logHandler)
+
+		ctx, cancel := context.WithCancel(cmd.Context())
+		defer cancel()
 
 		dirName := "./.tmp"
 		if _, err := os.Stat(dirName); os.IsNotExist(err) {
@@ -64,56 +63,23 @@ var execCmd = &cobra.Command{
 			return fmt.Errorf("creating game: %w", err)
 		}
 
-		r := os.Stdin
+		signalCh := make(chan os.Signal, 1)
+		signal.Notify(signalCh, os.Interrupt)
+		go func() {
+			<-signalCh
+			cancel()
+			logger.Info("Shutting down")
+		}()
 
-		if p := *pipeFile; p != "" {
-			os.Remove(p)
-			err := syscall.Mkfifo(p, 0666)
-			if err != nil {
-				log.Fatal("Make named pipe file error:", err)
+		go func() {
+			if err := pipeGameCmds(ctx, g); err != nil {
+				logger.Error("pipeGameCmds", "err", err)
 			}
-			file, err := os.OpenFile(p, os.O_CREATE, os.ModeNamedPipe)
-			if err != nil {
-				log.Fatal("Open named pipe file error:", err)
-			}
-			r = file
-			defer file.Close()
-			defer os.Remove(p)
-		} else {
-			fmt.Println("No pipe file specified, using stdin")
-		}
+		}()
 
-		return ReadEvent(r, func(i string) error {
-			args := strings.Split(i, " ")
-			if len(args) < 2 {
-				logger.Error("invalid command", "command", i)
-			}
-
-			if err := g.DispatchStringCommand(cmd.Context(), *aggregateID, args[0], args[1:]...); err != nil {
-				logger.Error("dispatching command", "error", err)
-			}
-
-			return nil
-		})
+		<-ctx.Done()
+		return nil
 	},
-}
-
-func ReadEvent(r io.Reader, f func(i string) error) error {
-	reader := bufio.NewReader(r)
-	for {
-		line, err := reader.ReadBytes('\n')
-		if err != nil {
-			if err == io.EOF {
-				continue
-			}
-
-			return fmt.Errorf("reading line: %w", err)
-		}
-
-		if err := f(string(line)); err != nil {
-			return fmt.Errorf("processing line: %w", err)
-		}
-	}
 }
 
 func init() {

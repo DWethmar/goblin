@@ -1,3 +1,3 @@
 # goblin
 
--  `go run . dispatch -a 1 crta toet`
+-  `go run . exec -a 1 crta toet`
