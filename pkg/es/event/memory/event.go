@@ -38,6 +38,19 @@ func (r *EventRepository) List(aggregateID string) ([]*es.Event, error) {
 	return events, nil
 }
 
+func (r *EventRepository) All(err chan<- error) <-chan *es.Event {
+	outCh := make(chan *es.Event)
+	go func() {
+		r.eventsMux.Lock()
+		defer r.eventsMux.Unlock()
+		for _, event := range r.events {
+			outCh <- event
+		}
+		close(outCh)
+	}()
+	return outCh
+}
+
 func NewEventRepository() *EventRepository {
 	return &EventRepository{
 		eventsMux: sync.Mutex{},

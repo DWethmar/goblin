@@ -6,4 +6,5 @@ import "github.com/dwethmar/goblin/pkg/es"
 type Store interface {
 	Add(events []*es.Event) error
 	List(aggregateID string) ([]*es.Event, error)
+	All(err chan<- error) <-chan *es.Event
 }

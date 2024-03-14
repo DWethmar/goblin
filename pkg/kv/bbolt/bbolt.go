@@ -2,6 +2,7 @@ package bbolt
 
 import (
 	"bytes"
+	"fmt"
 
 	"github.com/dwethmar/goblin/pkg/kv"
 	bolt "go.etcd.io/bbolt"
@@ -49,6 +50,19 @@ func (d *DB) Delete(k []byte) error {
 			return nil
 		}
 		return b.Delete(k)
+	})
+}
+
+func (d *DB) Iterate(f func(k []byte, v []byte) error) error {
+	return d.db.View(func(tx *bolt.Tx) error {
+		c := tx.Bucket(d.bucket).Cursor()
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			if err := f(k, v); err != nil {
+				return fmt.Errorf("iterating error: %w", err)
+			}
+		}
+
+		return nil
 	})
 }
 

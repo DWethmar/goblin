@@ -10,6 +10,7 @@ import (
 	"github.com/dwethmar/goblin/pkg/es"
 	"github.com/dwethmar/goblin/pkg/es/aggregate"
 	"github.com/dwethmar/goblin/pkg/es/event"
+	"github.com/dwethmar/goblin/pkg/es/replay"
 	"github.com/dwethmar/goblin/pkg/services"
 )
 
@@ -50,6 +51,12 @@ func New(ctx context.Context, opt Options) (*Game, error) {
 
 	aggregateStore := aggregate.NewStore(opt.EventStore, aggregateFactory)
 	commandBus := es.NewCommandBus(aggregateStore, eventBus)
+
+	// replay all events and rebuild the state
+	replayer := replay.New(opt.EventStore, eventBus)
+	if err := replayer.Replay(ctx); err != nil {
+		return nil, fmt.Errorf("replaying events: %w", err)
+	}
 
 	return &Game{
 		logger:       logger,

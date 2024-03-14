@@ -8,6 +8,7 @@ import (
 	"github.com/dwethmar/goblin/pkg/es"
 )
 
+// ActorEventMatcher is a matcher that can be used to match events for the actor.
 var ActorEventMatcher = es.MatchEvents{
 	CreatedEventType,
 }

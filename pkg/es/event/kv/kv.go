@@ -55,6 +55,24 @@ func (r *Store) List(aggregateID string) ([]*es.Event, error) {
 	return events, nil
 }
 
+// All returns all events in the store.
+func (r *Store) All(errCh chan<- error) <-chan *es.Event {
+	outCh := make(chan *es.Event)
+	go func() {
+		defer close(outCh)
+		if err := r.kv.Iterate(func(k, v []byte) error {
+			event, err := r.eventDecoder.Decode(v)
+			if err == nil {
+				outCh <- event
+			}
+			return err
+		}); err != nil {
+			errCh <- fmt.Errorf("iterating over events: %w", err)
+		}
+	}()
+	return outCh
+}
+
 func New(kv kv.DB,
 	eventDecoder event.Decoder,
 	eventEncoder event.Encoder,
