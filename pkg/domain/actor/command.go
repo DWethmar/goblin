@@ -2,13 +2,17 @@ package actor
 
 import "github.com/dwethmar/goblin/pkg/es"
 
-const CreateCommandType = "actor.create"
+var (
+	_ es.Command = &CreateCommand{}
+	_ es.Command = &MoveCommand{}
+)
 
-var _ es.Command = &CreateCommand{}
+const CreateCommandType = "actor.create"
 
 type CreateCommand struct {
 	ActorID string
 	Name    string
+	X, Y    int
 }
 
 func (c *CreateCommand) AggregateID() string   { return c.ActorID }
@@ -17,11 +21,9 @@ func (c *CreateCommand) AggregateType() string { return AggregateType }
 
 const MoveCommandType = "actor.move"
 
-var _ es.Command = &CreateCommand{}
-
 type MoveCommand struct {
 	ActorID string
-	Name    string
+	X, Y    int
 }
 
 func (c *MoveCommand) AggregateID() string   { return c.ActorID }

@@ -22,6 +22,7 @@ const (
 type Actor struct {
 	ID    string
 	Name  string
+	X, Y  int
 	state State
 }
 
@@ -43,6 +44,18 @@ func (a *Actor) HandleCommand(cmd es.Command) (*es.Event, error) {
 			Type:        CreatedEventType,
 			Data: &CreatedEventData{
 				Name: c.Name,
+				X:    c.X,
+				Y:    c.Y,
+			},
+			Created: time.Now(),
+		}, nil
+	case *MoveCommand:
+		return &es.Event{
+			AggregateID: c.ActorID,
+			Type:        MovedEventType,
+			Data: &MovedEventData{
+				X: c.X,
+				Y: c.Y,
 			},
 			Created: time.Now(),
 		}, nil
@@ -54,10 +67,6 @@ func (a *Actor) HandleCommand(cmd es.Command) (*es.Event, error) {
 func (a *Actor) HandleEvent(event *es.Event) error {
 	switch event.Type {
 	case CreatedEventType:
-		if StateCreated.Is(a.state) {
-			return fmt.Errorf("actor already created")
-		}
-
 		data, ok := event.Data.(*CreatedEventData)
 		if !ok {
 			return fmt.Errorf("expected *CreatedEventData, got %T", event.Data)
@@ -66,6 +75,15 @@ func (a *Actor) HandleEvent(event *es.Event) error {
 		a.ID = event.AggregateID
 		a.Name = data.Name
 		a.state = StateCreated
+
+	case MovedEventType:
+		data, ok := event.Data.(*MovedEventData)
+		if !ok {
+			return fmt.Errorf("expected *MovedEventData, got %T", event.Data)
+		}
+
+		a.X = data.X
+		a.Y = data.Y
 	}
 
 	return nil

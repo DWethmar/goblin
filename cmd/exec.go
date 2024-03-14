@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"path"
+	"syscall"
 
 	"github.com/dwethmar/goblin/cmd/game"
 	eventEncoding "github.com/dwethmar/goblin/pkg/es/event/encoding"
@@ -21,8 +22,7 @@ import (
 )
 
 var (
-	aggregateID *string
-	pipeFile    *string
+	pipeFile *string
 )
 
 // execCmd represents the run command
@@ -55,7 +55,7 @@ var execCmd = &cobra.Command{
 		bucket := []byte("events")
 		eventStore := eventkv.New(bbolt.New(bucket, db), &eventEncoding.Decoder{}, &eventEncoding.Encoder{})
 
-		g, err := game.New(cmd.Context(), game.Options{
+		g, err := game.New(ctx, game.Options{
 			Logger:     logger,
 			EventStore: eventStore,
 		})
@@ -63,12 +63,18 @@ var execCmd = &cobra.Command{
 			return fmt.Errorf("creating game: %w", err)
 		}
 
-		signalCh := make(chan os.Signal, 1)
-		signal.Notify(signalCh, os.Interrupt)
+		done := make(chan struct{}, 1)
+		sigs := make(chan os.Signal, 1)
+		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+		go func() { // handle signals and begin shutdown
+			<-sigs
+			done <- struct{}{}
+		}()
+
 		go func() {
-			<-signalCh
+			<-done
 			cancel()
-			logger.Info("Shutting down")
 		}()
 
 		go func() {
@@ -77,15 +83,12 @@ var execCmd = &cobra.Command{
 			}
 		}()
 
-		<-ctx.Done()
+		<-done
 		return nil
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(execCmd)
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	aggregateID = execCmd.Flags().StringP("aggregate-id", "a", "", "The aggregate id to use")
 	pipeFile = execCmd.Flags().StringP("pipe-file", "p", "goblinput", "The pipe file to use")
 }
