@@ -12,10 +12,12 @@ type Actors struct {
 	commandBus *es.CommandBus
 }
 
-func (a *Actors) Create(id string, name string) error {
+func (a *Actors) Create(_ context.Context, id string, name string, x, y int) error {
 	cmd := &actor.CreateCommand{
 		ActorID: id,
 		Name:    name,
+		X:       x,
+		Y:       y,
 	}
 
 	return a.commandBus.Dispatch(cmd)

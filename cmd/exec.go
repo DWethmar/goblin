@@ -4,12 +4,15 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"bufio"
 	"context"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"os/signal"
 	"path"
+	"strings"
 	"syscall"
 
 	"github.com/dwethmar/goblin/cmd/game"
@@ -22,7 +25,8 @@ import (
 )
 
 var (
-	pipeFile *string
+	aggregateId string
+	filePath    string
 )
 
 // execCmd represents the run command
@@ -34,6 +38,8 @@ var execCmd = &cobra.Command{
 			Level: slog.LevelDebug,
 		})
 		logger := slog.New(logHandler)
+
+		logger.Info("exec", "game", Game)
 
 		ctx, cancel := context.WithCancel(cmd.Context())
 		defer cancel()
@@ -78,17 +84,48 @@ var execCmd = &cobra.Command{
 		}()
 
 		go func() {
-			if err := pipeGameCmds(ctx, g); err != nil {
-				logger.Error("pipeGameCmds", "err", err)
+			s := &game.State{
+				Logger:      logger,
+				AggregateID: aggregateId,
+			}
+
+			var rd io.Reader
+			if filePath != "" {
+				f, err := os.Open(filePath)
+				if err != nil {
+					logger.Error("opening file", "err", err)
+					done <- struct{}{}
+					return
+				}
+				defer f.Close()
+				rd = f
+			} else {
+				rd = os.Stdin
+				fmt.Print("Input: ")
+			}
+
+			reader := bufio.NewReader(rd)
+			for {
+				input, err := reader.ReadString('\n')
+				if err != nil {
+					logger.Error("reading stdin", "err", err)
+					done <- struct{}{}
+					return
+				}
+				if err := g.ExecStringCommand(ctx, s, strings.Trim(input, "\n")); err != nil {
+					logger.Error("executing command", "err", err)
+				}
 			}
 		}()
 
 		<-done
 		return nil
 	},
+	ValidArgs: []string{"aggregate-id"},
 }
 
 func init() {
 	rootCmd.AddCommand(execCmd)
-	pipeFile = execCmd.Flags().StringP("pipe-file", "p", "goblinput", "The pipe file to use")
+	execCmd.PersistentFlags().StringVarP(&aggregateId, "aggregate", "a", "", "The aggregate id")
+	execCmd.PersistentFlags().StringVarP(&filePath, "file", "f", "", "The file to read commands from")
 }

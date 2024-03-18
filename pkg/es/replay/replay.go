@@ -18,11 +18,13 @@ type Replayer struct {
 func (r *Replayer) Replay(ctx context.Context) error {
 	errCh := make(chan error)
 	eventCh := r.eventStore.All(errCh)
+	r.logger.DebugContext(ctx, "replaying events")
 
 	for {
 		select {
 		case event, ok := <-eventCh:
 			if !ok {
+				r.logger.DebugContext(ctx, "replay done")
 				return nil
 			}
 

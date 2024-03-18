@@ -9,6 +9,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	// Game is the game name
+	Game string
+)
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "goblin",
@@ -22,6 +27,8 @@ to quickly create a Cobra application.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },
+	// validate
+	ValidArgs: []string{"game"},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -34,11 +41,7 @@ func Execute() {
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.goblin.yaml)")
+	rootCmd.PersistentFlags().StringVarP(&Game, "game", "g", "", "The game name")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.

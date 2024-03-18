@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"strings"
 
 	"github.com/dwethmar/goblin/pkg/domain/actor"
 	actorMemory "github.com/dwethmar/goblin/pkg/domain/actor/memory"
@@ -23,32 +22,6 @@ type Options struct {
 type Game struct {
 	logger       *slog.Logger
 	actorService *services.Actors
-}
-
-func (g *Game) ExecStringCommand(ctx context.Context, cmdStr string) error {
-	args := strings.Split(cmdStr, " ")
-	fmt.Printf("args: %v\n", args)
-
-	if len(args) < 2 {
-		return fmt.Errorf("command is invalid")
-	}
-
-	cmd := args[0]
-
-	switch cmd {
-	case "create":
-		switch args[1] {
-		case "actor":
-			if len(args) < 4 {
-				return fmt.Errorf("command is invalid")
-			}
-			id := args[2]
-			name := args[3]
-			return g.actorService.Create(id, name)
-		}
-	}
-
-	return fmt.Errorf("unknown command: %s", cmd)
 }
 
 func New(ctx context.Context, opt Options) (*Game, error) {

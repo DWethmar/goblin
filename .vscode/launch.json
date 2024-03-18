@@ -16,6 +16,24 @@
                 "crta",
                 "toet",
             ]
-        }
+        },
+		{
+			"name": "launch",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}",
+			"env": {},
+			"buildFlags": "",
+			"showLog": true,
+			// "logOutput": "dap",
+            "args": [
+                "exec",
+                "--aggregate",
+                "1",
+                "--file",
+                "test.txt",
+            ],
+		}
     ]
 }

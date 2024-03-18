@@ -11,6 +11,8 @@ import (
 // ActorEventMatcher is a matcher that can be used to match events for the actor.
 var ActorEventMatcher = es.MatchEvents{
 	CreatedEventType,
+	DestroyedEventType,
+	MovedEventType,
 }
 
 // ActorSinkHandler returns a handler that can be used to handle events from

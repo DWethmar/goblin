@@ -61,7 +61,11 @@ func (d *DB) Delete(k []byte) error {
 
 func (d *DB) Iterate(f func(k []byte, v []byte) error) error {
 	return d.db.View(func(tx *bolt.Tx) error {
-		c := tx.Bucket(d.bucket).Cursor()
+		b := tx.Bucket(d.bucket)
+		if b == nil {
+			return nil
+		}
+		c := b.Cursor()
 		for k, v := c.First(); k != nil; k, v = c.Next() {
 			if err := f(k, v); err != nil {
 				return fmt.Errorf("iterating error: %w", err)
@@ -75,7 +79,11 @@ func (d *DB) Iterate(f func(k []byte, v []byte) error) error {
 // Iterate iterates over all the key-value pairs in the database.
 func (d *DB) IterateWithPrefix(prefix []byte, f func(k []byte, v []byte) error) error {
 	return d.db.View(func(tx *bolt.Tx) error {
-		c := tx.Bucket(d.bucket).Cursor()
+		b := tx.Bucket(d.bucket)
+		if b == nil {
+			return nil
+		}
+		c := b.Cursor()
 		for k, v := c.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = c.Next() {
 			if err := f(k, v); err != nil {
 				return err
