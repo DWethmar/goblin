@@ -27,6 +27,10 @@ func (a *Actors) Get(ctx context.Context, id string) (*actor.Actor, error) {
 	return a.repo.Get(ctx, id)
 }
 
+func (a *Actors) List(ctx context.Context, offset, limit int) ([]*actor.Actor, error) {
+	return a.repo.List(ctx, offset, limit)
+}
+
 func NewActorService(repo actor.Repository, commandBus *es.CommandBus) *Actors {
 	return &Actors{
 		repo:       repo,

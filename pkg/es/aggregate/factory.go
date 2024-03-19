@@ -12,10 +12,10 @@ var (
 )
 
 type Factory struct {
-	createFuncs map[string]func(aggregateID string) es.Aggregate
+	createFuncs map[string]func(aggregateID string) *es.Aggregate
 }
 
-func (f *Factory) Register(aggregateType string, ff func(aggregateID string) es.Aggregate) error {
+func (f *Factory) Register(aggregateType string, ff func(aggregateID string) *es.Aggregate) error {
 	if _, ok := f.createFuncs[aggregateType]; ok {
 		return ErrAggregateTypeAlreadyRegistered
 	}
@@ -23,7 +23,7 @@ func (f *Factory) Register(aggregateType string, ff func(aggregateID string) es.
 	return nil
 }
 
-func (f *Factory) Create(aggregateType string, aggregateID string) (es.Aggregate, error) {
+func (f *Factory) Create(aggregateType string, aggregateID string) (*es.Aggregate, error) {
 	createFunc, ok := f.createFuncs[aggregateType]
 	if !ok {
 		return nil, fmt.Errorf("aggregate type %q not found", aggregateType)
@@ -33,6 +33,6 @@ func (f *Factory) Create(aggregateType string, aggregateID string) (es.Aggregate
 
 func NewFactory() *Factory {
 	return &Factory{
-		createFuncs: make(map[string]func(aggregateID string) es.Aggregate),
+		createFuncs: make(map[string]func(aggregateID string) *es.Aggregate),
 	}
 }

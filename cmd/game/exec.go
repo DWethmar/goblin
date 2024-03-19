@@ -2,6 +2,7 @@ package game
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strconv"
@@ -13,22 +14,32 @@ type State struct {
 	AggregateID string
 }
 
+var (
+	ErrInvalidUseCommand         = errors.New("use command is invalid, expected: use <id>")
+	ErrInvalidCreateCommand      = errors.New("create command is invalid, expected: create <type>")
+	ErrInvalidCreateActorCommand = errors.New("create actor command is invalid, expected: create actor <name> <x> <y>")
+)
+
 var cmds = map[string]func(ctx context.Context, g *Game, s *State, args []string) error{
 	"use": func(ctx context.Context, g *Game, s *State, args []string) error {
 		if len(args) < 1 {
-			return fmt.Errorf("use command is invalid, expected: use <id>")
+			return ErrInvalidUseCommand
 		}
 		s.AggregateID = args[0]
 		fmt.Printf("using aggregate: %s\n", s.AggregateID)
 		return nil
 	},
 	"create": func(ctx context.Context, g *Game, s *State, args []string) error {
-		if len(args) < 3 {
-			return fmt.Errorf("create command is invalid, expected: create <name> <x> <y>")
+		if len(args) < 1 {
+			return ErrInvalidCreateCommand
 		}
 
-		switch args[0] {
+		subject := args[0]
+		switch subject {
 		case "actor":
+			if len(args) < 4 {
+				return ErrInvalidCreateActorCommand
+			}
 			var (
 				id   = s.AggregateID
 				name = args[1]

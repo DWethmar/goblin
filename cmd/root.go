@@ -17,18 +17,15 @@ var (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "goblin",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Goblin is a game",
+	Long:  `Goblin is a game`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },
 	// validate
-	ValidArgs: []string{"game"},
+	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{"game"}, cobra.ShellCompDirectiveDefault
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -41,7 +38,7 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVarP(&Game, "game", "g", "", "The game name")
+	rootCmd.PersistentFlags().StringVarP(&Game, "game", "g", "goblin", "The game name")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.

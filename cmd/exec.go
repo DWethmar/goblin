@@ -4,15 +4,12 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"io"
 	"log/slog"
 	"os"
 	"os/signal"
-	"path"
-	"strings"
 	"syscall"
 
 	"github.com/dwethmar/goblin/cmd/game"
@@ -21,7 +18,6 @@ import (
 	"github.com/dwethmar/goblin/pkg/kv/bbolt"
 
 	"github.com/spf13/cobra"
-	bolt "go.etcd.io/bbolt"
 )
 
 var (
@@ -38,23 +34,20 @@ var execCmd = &cobra.Command{
 			Level: slog.LevelDebug,
 		})
 		logger := slog.New(logHandler)
-
 		logger.Info("exec", "game", Game)
+
+		if Game == "" {
+			return fmt.Errorf("game is required")
+		}
 
 		ctx, cancel := context.WithCancel(cmd.Context())
 		defer cancel()
 
-		dirName := "./.tmp"
-		if _, err := os.Stat(dirName); os.IsNotExist(err) {
-			if err := os.Mkdir(dirName, 0700); err != nil {
-				return fmt.Errorf("creating dir: %w", err)
-			}
-		}
+		gamePath := fmt.Sprintf("./.tmp/%s.db", Game)
 
-		dnName := "goblin.db"
-		db, err := bolt.Open(path.Join(dirName, dnName), 0600, nil)
+		db, err := bbolt.Connect(gamePath)
 		if err != nil {
-			return fmt.Errorf("opening db: %w", err)
+			return fmt.Errorf("connecting to db: %w", err)
 		}
 		defer db.Close()
 
@@ -89,7 +82,7 @@ var execCmd = &cobra.Command{
 				AggregateID: aggregateId,
 			}
 
-			var rd io.Reader
+			var r io.Reader
 			if filePath != "" {
 				f, err := os.Open(filePath)
 				if err != nil {
@@ -98,24 +91,17 @@ var execCmd = &cobra.Command{
 					return
 				}
 				defer f.Close()
-				rd = f
+				r = f
 			} else {
-				rd = os.Stdin
+				r = os.Stdin
 				fmt.Print("Input: ")
 			}
 
-			reader := bufio.NewReader(rd)
-			for {
-				input, err := reader.ReadString('\n')
-				if err != nil {
-					logger.Error("reading stdin", "err", err)
-					done <- struct{}{}
-					return
-				}
-				if err := g.ExecStringCommand(ctx, s, strings.Trim(input, "\n")); err != nil {
-					logger.Error("executing command", "err", err)
-				}
+			if err := ExecLines(ctx, r, g, s); err != nil {
+				logger.Error("exec lines", "err", err)
 			}
+
+			done <- struct{}{}
 		}()
 
 		<-done

@@ -14,7 +14,7 @@ type Store struct {
 	factory    *Factory
 }
 
-func (s *Store) Get(aggregateType, aggregateID string) (es.Aggregate, error) {
+func (s *Store) Get(aggregateType, aggregateID string) (*es.Aggregate, error) {
 	events, err := s.eventStore.List(aggregateID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list events: %w", err)
@@ -38,7 +38,7 @@ func (s *Store) Get(aggregateType, aggregateID string) (es.Aggregate, error) {
 	return aggregate, nil
 }
 
-func (s *Store) Save(a ...es.Aggregate) error {
+func (s *Store) Save(a ...*es.Aggregate) error {
 	var events []*es.Event
 	for _, aggregate := range a {
 		events = append(events, aggregate.AggregateEvents()...)

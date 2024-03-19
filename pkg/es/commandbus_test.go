@@ -9,22 +9,25 @@ import (
 func TestCommandBus_Dispatch(t *testing.T) {
 	t.Run("should dispatch command", func(t *testing.T) {
 		aggregateStore := &MockAggregateStore{
-			GetFunc: func(aggregateType, aggregateID string) (Aggregate, error) {
-				return &MockAggregate{
-					ID: "1",
-					CommandHandlerFunc: func(c Command) (*Event, error) {
-						return &Event{
-							AggregateID: "1",
-							Type:        "test",
-							Data:        "test",
-							Version:     1,
-							CreatedAt:   time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
-						}, nil
+			GetFunc: func(aggregateType, aggregateID string) (*Aggregate, error) {
+				return &Aggregate{
+					Model: &MockAggregate{
+						ID: "1",
+						CommandHandlerFunc: func(c Command) (*Event, error) {
+							return &Event{
+								AggregateID: "1",
+								Type:        "test",
+								Data:        "test",
+								Version:     1,
+								CreatedAt:   time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+							}, nil
+						},
+						EventHandlerFunc: func(e *Event) error { return nil },
 					},
-					EventHandlerFunc: func(e *Event) error { return nil },
 				}, nil
+
 			},
-			SaveFunc: func(_ ...Aggregate) error { return nil },
+			SaveFunc: func(_ ...*Aggregate) error { return nil },
 		}
 
 		eventBus := &EventBus{}

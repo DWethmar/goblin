@@ -7,7 +7,7 @@ import (
 	"github.com/dwethmar/goblin/pkg/es"
 )
 
-var _ es.Aggregate = &Actor{}
+var _ es.Model = &Actor{}
 
 const AggregateType = "actor"
 
@@ -39,7 +39,7 @@ func (a *Actor) HandleCommand(cmd es.Command) (*es.Event, error) {
 		return nil, fmt.Errorf("actor deleted")
 	}
 
-	if _, ok := cmd.(*CreateCommand); !ok && StateCreated.Is(a.state) {
+	if _, ok := cmd.(*CreateCommand); ok && StateCreated.Is(a.state) {
 		return nil, fmt.Errorf("actor is already created")
 	}
 

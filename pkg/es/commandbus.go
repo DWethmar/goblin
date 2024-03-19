@@ -15,11 +15,11 @@ type CommandBus struct {
 }
 
 func (b *CommandBus) Dispatch(commands ...Command) error {
-	aggregates := make([]Aggregate, 0, len(commands))
+	aggregates := make([]*Aggregate, 0, len(commands))
 	events := make([]*Event, 0, len(commands))
 
 	for _, command := range commands {
-		var aggregate Aggregate
+		var aggregate *Aggregate
 		for _, a := range aggregates {
 			if a.AggregateID() == command.AggregateID() {
 				aggregate = a

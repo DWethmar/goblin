@@ -12,9 +12,11 @@ func init() {
 }
 
 func RegisterFactory(f *aggregate.Factory) error {
-	f.Register(AggregateType, func(aggregateID string) es.Aggregate {
-		return &Actor{
-			ID: aggregateID,
+	f.Register(AggregateType, func(aggregateID string) *es.Aggregate {
+		return &es.Aggregate{
+			Model: &Actor{
+				ID: aggregateID,
+			},
 		}
 	})
 	return nil

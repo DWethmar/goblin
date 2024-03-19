@@ -2,7 +2,7 @@ package es
 
 import "errors"
 
-var _ Aggregate = &MockAggregate{}
+var _ Model = &MockAggregate{}
 
 type MockAggregate struct {
 	ID                 string
