@@ -9,10 +9,6 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/dwethmar/goblin/cmd/game"
-	eventEncoding "github.com/dwethmar/goblin/pkg/es/event/encoding"
-	eventkv "github.com/dwethmar/goblin/pkg/es/event/kv"
-	"github.com/dwethmar/goblin/pkg/kv/bbolt"
 	"github.com/spf13/cobra"
 )
 
@@ -35,23 +31,28 @@ var lsCmd = &cobra.Command{
 		ctx, cancel := context.WithCancel(cmd.Context())
 		defer cancel()
 
-		gamePath := fmt.Sprintf("./.tmp/%s.db", Game)
-
-		db, err := bbolt.Connect(gamePath)
-		if err != nil {
-			return fmt.Errorf("connecting to db: %w", err)
-		}
-		defer db.Close()
-
-		bucket := []byte("events")
-		eventStore := eventkv.New(bbolt.New(bucket, db), &eventEncoding.Decoder{}, &eventEncoding.Encoder{})
-
-		_, err = game.New(ctx, game.Options{
-			Logger:     logger,
-			EventStore: eventStore,
+		g, close, err := SetupGame(ctx, Config{
+			Logger: logger,
+			Game:   Game,
 		})
 		if err != nil {
-			return fmt.Errorf("creating game: %w", err)
+			return fmt.Errorf("setting up game: %w", err)
+		}
+		defer close()
+
+		actorService := g.ActorService()
+		actors, err := actorService.List(ctx, 0, 10)
+		if err != nil {
+			return fmt.Errorf("listing actors: %w", err)
+		}
+
+		if len(actors) == 0 {
+			fmt.Println("no actors found")
+			return nil
+		}
+
+		for _, a := range actors {
+			fmt.Printf("%s: %s\n", a.ID, a.Name)
 		}
 
 		return nil

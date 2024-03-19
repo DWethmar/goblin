@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/dwethmar/goblin/cmd/game"
+	"github.com/dwethmar/goblin/pkg/game"
 )
 
 func ExecLines(ctx context.Context, r io.Reader, g *game.Game, s *game.State) error {

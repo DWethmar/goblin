@@ -12,11 +12,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/dwethmar/goblin/cmd/game"
-	eventEncoding "github.com/dwethmar/goblin/pkg/es/event/encoding"
-	eventkv "github.com/dwethmar/goblin/pkg/es/event/kv"
-	"github.com/dwethmar/goblin/pkg/kv/bbolt"
-
+	"github.com/dwethmar/goblin/pkg/game"
 	"github.com/spf13/cobra"
 )
 
@@ -30,37 +26,27 @@ var execCmd = &cobra.Command{
 	Use:   "exec",
 	Short: "exec a command to the game",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if Game == "" {
+			return fmt.Errorf("game is required")
+		}
+
 		logHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 			Level: slog.LevelDebug,
 		})
 		logger := slog.New(logHandler)
 		logger.Info("exec", "game", Game)
 
-		if Game == "" {
-			return fmt.Errorf("game is required")
-		}
-
 		ctx, cancel := context.WithCancel(cmd.Context())
 		defer cancel()
 
-		gamePath := fmt.Sprintf("./.tmp/%s.db", Game)
-
-		db, err := bbolt.Connect(gamePath)
-		if err != nil {
-			return fmt.Errorf("connecting to db: %w", err)
-		}
-		defer db.Close()
-
-		bucket := []byte("events")
-		eventStore := eventkv.New(bbolt.New(bucket, db), &eventEncoding.Decoder{}, &eventEncoding.Encoder{})
-
-		g, err := game.New(ctx, game.Options{
-			Logger:     logger,
-			EventStore: eventStore,
+		g, close, err := SetupGame(ctx, Config{
+			Logger: logger,
+			Game:   Game,
 		})
 		if err != nil {
-			return fmt.Errorf("creating game: %w", err)
+			return fmt.Errorf("setting up game: %w", err)
 		}
+		defer close()
 
 		done := make(chan struct{}, 1)
 		sigs := make(chan os.Signal, 1)
