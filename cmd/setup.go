@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/dwethmar/goblin/pkg/aggr"
+	"github.com/dwethmar/goblin/pkg/aggr/aggrstore"
+	eventEncoding "github.com/dwethmar/goblin/pkg/aggr/event/encoding"
+	eventkv "github.com/dwethmar/goblin/pkg/aggr/event/kv"
+	"github.com/dwethmar/goblin/pkg/aggr/replay"
 	"github.com/dwethmar/goblin/pkg/domain/actor"
 	actorMemory "github.com/dwethmar/goblin/pkg/domain/actor/memory"
-	"github.com/dwethmar/goblin/pkg/es"
-	"github.com/dwethmar/goblin/pkg/es/aggregate"
-	eventEncoding "github.com/dwethmar/goblin/pkg/es/event/encoding"
-	eventkv "github.com/dwethmar/goblin/pkg/es/event/kv"
-	"github.com/dwethmar/goblin/pkg/es/replay"
 	"github.com/dwethmar/goblin/pkg/game"
 	"github.com/dwethmar/goblin/pkg/kv/bbolt"
 	"github.com/dwethmar/goblin/pkg/services"
@@ -32,16 +32,15 @@ func SetupGame(ctx context.Context, c Config) (*game.Game, func() error, error) 
 
 	actorRepo := actorMemory.NewRepository()
 	// Create the event bus and add event handlers
-	eventBus := es.NewEventBus()
+	eventBus := aggr.NewEventBus()
 	eventBus.Subscribe(actor.ActorEventMatcher, actor.ActorSinkHandler(ctx, actorRepo))
 
 	// Create the agregate factory and register agregates
-	aggregateFactory := aggregate.NewFactory()
-	actor.RegisterFactory(aggregateFactory)
+	aggregateFactory := aggrstore.NewFactory(actor.RegisterFactory)
 
 	// Create the command bus
-	aggregateStore := aggregate.NewStore(eventStore, aggregateFactory)
-	commandBus := es.NewCommandBus(aggregateStore, eventBus)
+	aggregateStore := aggrstore.NewStore(eventStore, aggregateFactory)
+	commandBus := aggr.NewCommandBus(aggregateStore, eventBus)
 
 	// replay all events and rebuild the state
 	replayer := replay.New(c.Logger, eventStore, eventBus)
@@ -58,9 +57,7 @@ func SetupGame(ctx context.Context, c Config) (*game.Game, func() error, error) 
 		return nil, nil, fmt.Errorf("creating game: %w", err)
 	}
 
-	close := func() error {
-		return db.Close()
-	}
+	close := func() error { return db.Close() }
 
 	return g, close, nil
 }

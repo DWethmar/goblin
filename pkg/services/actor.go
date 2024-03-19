@@ -3,13 +3,13 @@ package services
 import (
 	"context"
 
+	"github.com/dwethmar/goblin/pkg/aggr"
 	"github.com/dwethmar/goblin/pkg/domain/actor"
-	"github.com/dwethmar/goblin/pkg/es"
 )
 
 type Actors struct {
 	repo       actor.Repository
-	commandBus *es.CommandBus
+	commandBus *aggr.CommandBus
 }
 
 func (a *Actors) Create(_ context.Context, id string, name string, x, y int) error {
@@ -31,7 +31,7 @@ func (a *Actors) List(ctx context.Context, offset, limit int) ([]*actor.Actor, e
 	return a.repo.List(ctx, offset, limit)
 }
 
-func NewActorService(repo actor.Repository, commandBus *es.CommandBus) *Actors {
+func NewActorService(repo actor.Repository, commandBus *aggr.CommandBus) *Actors {
 	return &Actors{
 		repo:       repo,
 		commandBus: commandBus,

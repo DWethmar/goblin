@@ -1,10 +1,10 @@
 package actor
 
-import "github.com/dwethmar/goblin/pkg/es"
+import "github.com/dwethmar/goblin/pkg/aggr"
 
 var (
-	_ es.Command = &CreateCommand{}
-	_ es.Command = &MoveCommand{}
+	_ aggr.Command = &CreateCommand{}
+	_ aggr.Command = &MoveCommand{}
 )
 
 const CreateCommandType = "actor.create"

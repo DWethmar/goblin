@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/dwethmar/goblin/pkg/es"
+	"github.com/dwethmar/goblin/pkg/aggr"
 )
 
 func TestActorSinkHandler(t *testing.T) {
@@ -22,7 +22,7 @@ func TestActorSinkHandler(t *testing.T) {
 			},
 		}
 
-		event := &es.Event{
+		event := &aggr.Event{
 			AggregateID: "1",
 			Type:        CreatedEventType,
 			Data:        &CreatedEventData{Name: "test"},

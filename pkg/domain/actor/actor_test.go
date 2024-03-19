@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/dwethmar/goblin/pkg/es"
+	"github.com/dwethmar/goblin/pkg/aggr"
 )
 
 func TestState_Is(t *testing.T) {
@@ -38,14 +38,14 @@ func TestActor_AggregateID(t *testing.T) {
 		X       int
 		Y       int
 		state   State
-		events  []*es.Event
+		events  []*aggr.Event
 	}
 	tests := []struct {
 		name   string
 		fields fields
 		want   string
 	}{
-		// TODO: Add test cases.
+		// TODO: Add test casaggr.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -73,14 +73,14 @@ func TestActor_AggregateVersion(t *testing.T) {
 		X       int
 		Y       int
 		state   State
-		events  []*es.Event
+		events  []*aggr.Event
 	}
 	tests := []struct {
 		name   string
 		fields fields
 		want   int
 	}{
-		// TODO: Add test cases.
+		// TODO: Add test casaggr.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -108,19 +108,19 @@ func TestActor_HandleCommand(t *testing.T) {
 		X       int
 		Y       int
 		state   State
-		events  []*es.Event
+		events  []*aggr.Event
 	}
 	type args struct {
-		cmd es.Command
+		cmd aggr.Command
 	}
 	tests := []struct {
 		name    string
 		fields  fields
 		args    args
-		want    *es.Event
+		want    *aggr.Event
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		// TODO: Add test casaggr.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -153,10 +153,10 @@ func TestActor_HandleEvent(t *testing.T) {
 		X       int
 		Y       int
 		state   State
-		events  []*es.Event
+		events  []*aggr.Event
 	}
 	type args struct {
-		event *es.Event
+		event *aggr.Event
 	}
 	tests := []struct {
 		name    string
@@ -164,7 +164,7 @@ func TestActor_HandleEvent(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		// TODO: Add test casaggr.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -192,14 +192,14 @@ func TestActor_AggregateEvents(t *testing.T) {
 		X       int
 		Y       int
 		state   State
-		events  []*es.Event
+		events  []*aggr.Event
 	}
 	tests := []struct {
 		name   string
 		fields fields
-		want   []*es.Event
+		want   []*aggr.Event
 	}{
-		// TODO: Add test cases.
+		// TODO: Add test casaggr.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -227,13 +227,13 @@ func TestActor_ClearAggregateEvents(t *testing.T) {
 		X       int
 		Y       int
 		state   State
-		events  []*es.Event
+		events  []*aggr.Event
 	}
 	tests := []struct {
 		name   string
 		fields fields
 	}{
-		// TODO: Add test cases.
+		// TODO: Add test casaggr.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -259,14 +259,14 @@ func TestActor_Deleted(t *testing.T) {
 		X       int
 		Y       int
 		state   State
-		events  []*es.Event
+		events  []*aggr.Event
 	}
 	tests := []struct {
 		name   string
 		fields fields
 		want   bool
 	}{
-		// TODO: Add test cases.
+		// TODO: Add test casaggr.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

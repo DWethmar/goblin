@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dwethmar/goblin/pkg/es"
+	"github.com/dwethmar/goblin/pkg/aggr"
 )
 
-var _ es.Model = &Actor{}
+var _ aggr.Model = &Actor{}
 
 const AggregateType = "actor"
 
@@ -28,13 +28,13 @@ type Actor struct {
 	X, Y    int
 	state   State
 
-	events []*es.Event
+	events []*aggr.Event
 }
 
 func (a *Actor) AggregateID() string   { return a.ID }
 func (a *Actor) AggregateVersion() int { return a.Version }
 
-func (a *Actor) HandleCommand(cmd es.Command) (*es.Event, error) {
+func (a *Actor) HandleCommand(cmd aggr.Command) (*aggr.Event, error) {
 	if StateDeleted.Is(a.state) {
 		return nil, fmt.Errorf("actor deleted")
 	}
@@ -45,7 +45,7 @@ func (a *Actor) HandleCommand(cmd es.Command) (*es.Event, error) {
 
 	switch c := cmd.(type) {
 	case *CreateCommand:
-		return &es.Event{
+		return &aggr.Event{
 			AggregateID: c.ActorID,
 			Type:        CreatedEventType,
 			Data: &CreatedEventData{
@@ -57,7 +57,7 @@ func (a *Actor) HandleCommand(cmd es.Command) (*es.Event, error) {
 			CreatedAt: time.Now(),
 		}, nil
 	case *MoveCommand:
-		return &es.Event{
+		return &aggr.Event{
 			AggregateID: c.ActorID,
 			Type:        MovedEventType,
 			Data: &MovedEventData{
@@ -72,7 +72,7 @@ func (a *Actor) HandleCommand(cmd es.Command) (*es.Event, error) {
 	return nil, nil
 }
 
-func (a *Actor) HandleEvent(event *es.Event) error {
+func (a *Actor) HandleEvent(event *aggr.Event) error {
 	switch event.Type {
 	case CreatedEventType:
 		data, ok := event.Data.(*CreatedEventData)
@@ -103,6 +103,6 @@ func (a *Actor) HandleEvent(event *es.Event) error {
 	return nil
 }
 
-func (a *Actor) AggregateEvents() []*es.Event { return a.events }
-func (a *Actor) ClearAggregateEvents()        { a.events = []*es.Event{} }
-func (a *Actor) Deleted() bool                { return StateDeleted.Is(a.state) }
+func (a *Actor) AggregateEvents() []*aggr.Event { return a.events }
+func (a *Actor) ClearAggregateEvents()          { a.events = []*aggr.Event{} }
+func (a *Actor) Deleted() bool                  { return StateDeleted.Is(a.state) }

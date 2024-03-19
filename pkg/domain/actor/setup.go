@@ -3,21 +3,20 @@ package actor
 import (
 	"encoding/gob"
 
-	"github.com/dwethmar/goblin/pkg/es"
-	"github.com/dwethmar/goblin/pkg/es/aggregate"
+	"github.com/dwethmar/goblin/pkg/aggr"
+	"github.com/dwethmar/goblin/pkg/aggr/aggrstore"
 )
 
 func init() {
 	gob.Register(&CreatedEventData{})
 }
 
-func RegisterFactory(f *aggregate.Factory) error {
-	f.Register(AggregateType, func(aggregateID string) *es.Aggregate {
-		return &es.Aggregate{
+func RegisterFactory(f *aggrstore.Factory) {
+	f.Register(AggregateType, func(aggregateID string) *aggr.Aggregate {
+		return &aggr.Aggregate{
 			Model: &Actor{
 				ID: aggregateID,
 			},
 		}
 	})
-	return nil
 }
