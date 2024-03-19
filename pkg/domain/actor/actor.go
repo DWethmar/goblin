@@ -39,12 +39,19 @@ func (a *Actor) HandleCommand(cmd aggr.Command) (*aggr.Event, error) {
 		return nil, fmt.Errorf("actor deleted")
 	}
 
-	if _, ok := cmd.(*CreateCommand); ok && StateCreated.Is(a.state) {
-		return nil, fmt.Errorf("actor is already created")
+	if StateCreated.Is(a.state) {
+		switch cmd.(type) {
+		case *CreateCommand:
+			return nil, fmt.Errorf("actor already created")
+		}
 	}
 
 	switch c := cmd.(type) {
 	case *CreateCommand:
+		if c.Name == "" {
+			return nil, fmt.Errorf("name can't be empty")
+		}
+
 		return &aggr.Event{
 			AggregateID: c.ActorID,
 			Type:        CreatedEventType,

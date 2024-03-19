@@ -73,22 +73,19 @@ func (r *Repository) Update(ctx context.Context, a *actor.Actor) (*actor.Actor, 
 }
 
 // List implements actor.Repository.
-func (r *Repository) List(ctx context.Context, limit, offset int) ([]*actor.Actor, error) {
+func (r *Repository) List(ctx context.Context, offset, limit int) ([]*actor.Actor, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
-	if limit == 0 {
-		return r.actorsSorted, nil
+	if offset > len(r.actorsSorted) {
+		return []*actor.Actor{}, nil
 	}
 
-	if limit > len(r.actorsSorted) {
-		limit = len(r.actorsSorted)
+	if offset+limit > len(r.actorsSorted) {
+		return r.actorsSorted[offset:], nil
 	}
 
-	var l []*actor.Actor
-	copy(l, r.actorsSorted[offset:limit])
-
-	return l, nil
+	return r.actorsSorted[offset : offset+limit], nil
 }
 
 func NewRepository() *Repository {

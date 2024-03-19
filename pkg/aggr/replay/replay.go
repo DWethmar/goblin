@@ -28,7 +28,14 @@ func (r *Replayer) Replay(ctx context.Context) error {
 				return nil
 			}
 
-			r.logger.DebugContext(ctx, "replaying event", "type", event.Type, "version", event.Version, "aggregate", event.AggregateID)
+			r.logger.DebugContext(
+				ctx,
+				"replaying event",
+				"aggregate", event.AggregateID,
+				"type", event.Type,
+				"version", event.Version,
+				"data", event.Data,
+			)
 
 			if err := r.eventBus.Publish(event); err != nil {
 				return err

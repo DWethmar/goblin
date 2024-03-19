@@ -9,6 +9,8 @@ import (
 
 func init() {
 	gob.Register(&CreatedEventData{})
+	gob.Register(&DestroyedEventData{})
+	gob.Register(&MovedEventData{})
 }
 
 func RegisterFactory(f *aggrstore.Factory) {

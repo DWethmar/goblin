@@ -1,11 +1,12 @@
 GOCMD=go
 GOBUILD=$(GOCMD) build
 GOCLEAN=$(GOCMD) clean
+GOGENERATE=$(GOCMD) generate
 BINARY_NAME=goblin
 
-all: test build
+all: generate test build
 build:
-	$(GOBUILD) -o bin/$(BINARY_NAME) -v
+	$(GOBUILD) -o $(BINARY_NAME) -v
 test:
 	$(GOCMD) test ./...
 clean:
@@ -13,3 +14,5 @@ clean:
 	rm -rf bin/
 deps:
 	$(GOCMD) mod download
+generate:
+	$(GOGENERATE) ./...

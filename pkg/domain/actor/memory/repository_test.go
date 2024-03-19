@@ -272,16 +272,7 @@ func TestRepository_List(t *testing.T) {
 		{
 			name: "list actors",
 			fields: fields{
-				actors: map[string]*actor.Actor{
-					"1": {
-						ID:   "1",
-						Name: "test",
-					},
-					"2": {
-						ID:   "2",
-						Name: "test",
-					},
-				},
+				actors: map[string]*actor.Actor{},
 				actorsSorted: []*actor.Actor{
 					{
 						ID:   "1",
@@ -295,7 +286,7 @@ func TestRepository_List(t *testing.T) {
 			},
 			args: args{
 				ctx:    context.Background(),
-				limit:  0,
+				limit:  100,
 				offset: 0,
 			},
 			want: []*actor.Actor{
@@ -317,13 +308,14 @@ func TestRepository_List(t *testing.T) {
 				actors:       tt.fields.actors,
 				actorsSorted: tt.fields.actorsSorted,
 			}
-			got, err := r.List(tt.args.ctx, tt.args.limit, tt.args.offset)
+			got, err := r.List(tt.args.ctx, tt.args.offset, tt.args.limit)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Repository.List() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Repository.List() = %v, want %v", got, tt.want)
+
+			if diff := cmp.Diff(got, tt.want, cmp.AllowUnexported(actor.Actor{})); diff != "" {
+				t.Errorf("differs: (-got +want)\n%s", diff)
 			}
 		})
 	}

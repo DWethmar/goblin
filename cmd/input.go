@@ -9,9 +9,12 @@ import (
 	"github.com/dwethmar/goblin/pkg/game"
 )
 
-func ExecLines(ctx context.Context, r io.Reader, g *game.Game, s *game.CmdContext) error {
+func ExecInput(ctx context.Context, r io.Reader, g *game.Game, s *game.CmdContext) error {
 	reader := bufio.NewReader(r)
 	for {
+		if ctx.Err() != nil {
+			return nil
+		}
 		input, err := reader.ReadString('\n')
 		if err != nil {
 			if err == io.EOF {

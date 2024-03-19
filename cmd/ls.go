@@ -14,12 +14,12 @@ import (
 )
 
 var (
-	header bool
-	limit  int
-	offset int
+	header bool // show header
+	limit  int  // max number of aggregates to show
+	offset int  // offset of aggregates to show
 )
 
-// lsCmd represents the ls command
+// lsActorsCmd represents the ls actors command
 var lsActorsCmd = &cobra.Command{
 	Use:   "actors",
 	Short: "list actors",
@@ -56,9 +56,8 @@ var lsActorsCmd = &cobra.Command{
 		for _, a := range actors {
 			fmt.Fprintf(w, "%s\t%s\t%d\t%d\n", a.ID, a.Name, a.X, a.Y)
 		}
-		w.Flush()
 
-		return nil
+		return w.Flush()
 	},
 }
 
@@ -71,8 +70,8 @@ var lsCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(lsCmd)
-	lsCmd.Flags().BoolVarP(&header, "header", "H", false, "show header")
-	lsCmd.Flags().IntVarP(&limit, "limit", "l", 10, "max number of aggregates to show")
-	lsCmd.Flags().IntVarP(&offset, "offset", "o", 0, "offset of aggregates to show")
+	lsCmd.PersistentFlags().BoolVarP(&header, "header", "H", false, "show header")
+	lsCmd.PersistentFlags().IntVarP(&limit, "limit", "l", 10, "max number of aggregates to show")
+	lsCmd.PersistentFlags().IntVarP(&offset, "offset", "o", 0, "offset of aggregates to show")
 	lsCmd.AddCommand(lsActorsCmd)
 }

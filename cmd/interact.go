@@ -80,10 +80,9 @@ var interactCmd = &cobra.Command{
 				r = f
 			} else {
 				r = os.Stdin
-				fmt.Print("Enter cmd: ")
 			}
 
-			if err := ExecLines(ctx, r, g, s); err != nil {
+			if err := ExecInput(ctx, r, g, s); err != nil {
 				logger.Error("exec lines", "err", err)
 			}
 
