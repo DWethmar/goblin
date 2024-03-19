@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/dwethmar/goblin/pkg/aggr"
 	"github.com/dwethmar/goblin/pkg/domain/actor"
@@ -13,14 +14,26 @@ type Actors struct {
 }
 
 func (a *Actors) Create(_ context.Context, id string, name string, x, y int) error {
-	cmd := &actor.CreateCommand{
+	if err := a.commandBus.Dispatch(&actor.CreateCommand{
 		ActorID: id,
 		Name:    name,
 		X:       x,
 		Y:       y,
+	}); err != nil {
+		return fmt.Errorf("error dispatching create actor command: %w", err)
 	}
+	return nil
+}
 
-	return a.commandBus.Dispatch(cmd)
+func (a *Actors) Move(_ context.Context, id string, x, y int) error {
+	if err := a.commandBus.Dispatch(&actor.MoveCommand{
+		ActorID: id,
+		X:       x,
+		Y:       y,
+	}); err != nil {
+		return fmt.Errorf("error dispatching move actor command: %w", err)
+	}
+	return nil
 }
 
 func (a *Actors) Get(ctx context.Context, id string) (*actor.Actor, error) {

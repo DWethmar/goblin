@@ -21,10 +21,10 @@ var (
 	filePath    string
 )
 
-// execCmd represents the run command
-var execCmd = &cobra.Command{
-	Use:   "exec",
-	Short: "exec a command to the game",
+// interactCmd represents the run command
+var interactCmd = &cobra.Command{
+	Use:   "interact",
+	Short: "interact with a game",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if Game == "" {
 			return fmt.Errorf("game is required")
@@ -63,7 +63,7 @@ var execCmd = &cobra.Command{
 		}()
 
 		go func() {
-			s := &game.State{
+			s := &game.CmdContext{
 				Logger:      logger,
 				AggregateID: aggregateId,
 			}
@@ -80,7 +80,7 @@ var execCmd = &cobra.Command{
 				r = f
 			} else {
 				r = os.Stdin
-				fmt.Print("Input: ")
+				fmt.Print("Enter cmd: ")
 			}
 
 			if err := ExecLines(ctx, r, g, s); err != nil {
@@ -97,7 +97,7 @@ var execCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(execCmd)
-	execCmd.PersistentFlags().StringVarP(&aggregateId, "aggregate", "a", "", "The aggregate id")
-	execCmd.PersistentFlags().StringVarP(&filePath, "file", "f", "", "The file to read commands from")
+	rootCmd.AddCommand(interactCmd)
+	interactCmd.PersistentFlags().StringVarP(&aggregateId, "aggregate", "a", "", "The aggregate id")
+	interactCmd.PersistentFlags().StringVarP(&filePath, "file", "f", "", "The file to read commands from")
 }

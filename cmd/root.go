@@ -4,8 +4,10 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"fmt"
 	"os"
 
+	"github.com/dwethmar/goblin/pkg/game"
 	"github.com/spf13/cobra"
 )
 
@@ -19,6 +21,13 @@ var rootCmd = &cobra.Command{
 	Use:   "goblin",
 	Short: "Goblin is a game",
 	Long:  `Goblin is a game`,
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		gameName, _ := cmd.Flags().GetString("game")
+		if err := game.ValidateName(gameName); err != nil {
+			return fmt.Errorf("validating game name: %w", err)
+		}
+		return nil
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

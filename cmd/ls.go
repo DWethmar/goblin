@@ -8,14 +8,21 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"text/tabwriter"
 
 	"github.com/spf13/cobra"
 )
 
+var (
+	header bool
+	limit  int
+	offset int
+)
+
 // lsCmd represents the ls command
-var lsCmd = &cobra.Command{
-	Use:   "ls",
-	Short: "list aggregates",
+var lsActorsCmd = &cobra.Command{
+	Use:   "actors",
+	Short: "list actors",
 	Long:  ``,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
@@ -23,10 +30,6 @@ var lsCmd = &cobra.Command{
 		})
 		logger := slog.New(logHandler)
 		logger.Info("exec", "game", Game)
-
-		if Game == "" {
-			return fmt.Errorf("game is required")
-		}
 
 		ctx, cancel := context.WithCancel(cmd.Context())
 		defer cancel()
@@ -41,24 +44,35 @@ var lsCmd = &cobra.Command{
 		defer close()
 
 		actorService := g.ActorService()
-		actors, err := actorService.List(ctx, 0, 10)
+		actors, err := actorService.List(ctx, offset, limit)
 		if err != nil {
 			return fmt.Errorf("listing actors: %w", err)
 		}
 
-		if len(actors) == 0 {
-			fmt.Println("no actors found")
-			return nil
+		w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', 0)
+		if header {
+			fmt.Fprintln(w, "ID\tNAME\tX\tY")
 		}
-
 		for _, a := range actors {
-			fmt.Printf("%s: %s\n", a.ID, a.Name)
+			fmt.Fprintf(w, "%s\t%s\t%d\t%d\n", a.ID, a.Name, a.X, a.Y)
 		}
+		w.Flush()
 
 		return nil
 	},
 }
 
+// lsCmd represents the ls command
+var lsCmd = &cobra.Command{
+	Use:   "ls",
+	Short: "list aggregates",
+	Long:  ``,
+}
+
 func init() {
 	rootCmd.AddCommand(lsCmd)
+	lsCmd.Flags().BoolVarP(&header, "header", "H", false, "show header")
+	lsCmd.Flags().IntVarP(&limit, "limit", "l", 10, "max number of aggregates to show")
+	lsCmd.Flags().IntVarP(&offset, "offset", "o", 0, "offset of aggregates to show")
+	lsCmd.AddCommand(lsActorsCmd)
 }
