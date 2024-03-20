@@ -13,6 +13,7 @@ type CreateCommand struct {
 	X, Y    int
 	Width   int
 	Height  int
+	Tiles   []Tile
 }
 
 func (c *CreateCommand) AggregateID() string   { return c.ChunkID }

@@ -13,6 +13,7 @@ import (
 	"github.com/dwethmar/goblin/pkg/aggr/replay"
 	"github.com/dwethmar/goblin/pkg/domain/actor"
 	actorMemory "github.com/dwethmar/goblin/pkg/domain/actor/memory"
+	"github.com/dwethmar/goblin/pkg/domain/chunk"
 	"github.com/dwethmar/goblin/pkg/game"
 	"github.com/dwethmar/goblin/pkg/kv/bbolt"
 	"github.com/dwethmar/goblin/pkg/services"
@@ -38,13 +39,14 @@ func SetupGame(ctx context.Context, c Config) (*game.Game, func() error, error) 
 	bboltDB := bbolt.New([]byte("events"), db)
 	eventStore := eventkv.New(bboltDB, &eventEncoding.Decoder{}, &eventEncoding.Encoder{})
 
-	actorRepo := actorMemory.NewRepository()
 	// Create the event bus and add event handlers
 	eventBus := aggr.NewEventBus()
+
+	actorRepo := actorMemory.NewRepository()
 	eventBus.Subscribe(actor.ActorEventsMatcher, actor.ActorSinkHandler(actorRepo))
 
 	// Create the agregate factory and register agregates
-	aggregateFactory := aggrstore.NewFactory(actor.RegisterFactory)
+	aggregateFactory := aggrstore.NewFactory(actor.RegisterFactory, chunk.RegisterFactory)
 
 	// Create the command bus
 	aggregateStore := aggrstore.NewStore(eventStore, aggregateFactory)

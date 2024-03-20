@@ -76,30 +76,25 @@ func (a *Actor) HandleCommand(cmd aggr.Command) (*aggr.Event, error) {
 	case *MoveCommand:
 		return MoveCommandHandler(a, c)
 	default:
-		return nil, ErrUnknownCommandType
+		return nil, fmt.Errorf("unknown command type: %T: %w", cmd, ErrUnknownCommandType)
 	}
 }
 
 func (a *Actor) HandleEvent(_ context.Context, event *aggr.Event) error {
+	var err error
 	switch event.Type {
 	case CreatedEventType:
-		data, ok := event.Data.(*CreatedEventData)
-		if !ok {
-			return fmt.Errorf("expected *CreatedEventData, got %T", event.Data)
-		}
-
-		a.ID = event.AggregateID
-		a.Name = data.Name
-		a.state = domain.StateCreated
+		err = HandleCreatedEvent(a, event)
 	case DestroyedEventType:
-		a.state = domain.StateDeleted
+		err = HandleDestroyedEvent(a, event)
 	case MovedEventType:
-		data, ok := event.Data.(*MovedEventData)
-		if !ok {
-			return fmt.Errorf("expected *MovedEventData, got %T", event.Data)
-		}
-		a.X = data.X
-		a.Y = data.Y
+		err = HandleMovedEvent(a, event)
+	default:
+		return fmt.Errorf("unknown event type: %s", event.Type)
+	}
+
+	if err != nil {
+		return err
 	}
 
 	a.Version = event.Version

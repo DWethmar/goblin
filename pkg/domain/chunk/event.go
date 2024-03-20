@@ -1,9 +1,9 @@
 package chunk
 
-const (
-	CreatedEventType = "chunk.created"
-)
+const CreatedEventType = "chunk.created"
 
 type CreatedEventData struct {
-	X, Y int
+	X, Y          int
+	Width, Height int
+	Tiles         []Tile
 }

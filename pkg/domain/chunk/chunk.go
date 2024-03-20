@@ -26,6 +26,8 @@ type Chunk struct {
 	Version int
 	X       int
 	Y       int
+	Width   int
+	Height  int
 	Tiles   matrix.Matrix
 
 	state  domain.State
@@ -37,8 +39,9 @@ func New(id string, x, y int) *Chunk {
 		ID:      id,
 		X:       x,
 		Y:       y,
-		Tiles:   [][]int{},
+		Tiles:   nil,
 		Version: 0,
+		state:   domain.StateDraft,
 	}
 }
 
@@ -50,6 +53,14 @@ func (c *Chunk) HandleCommand(cmd aggr.Command) (*aggr.Event, error) {
 		return nil, ErrNilCommand
 	}
 
+	// if state is draft and command is not create, return error
+	if domain.StateDraft.Is(c.state) {
+		if _, ok := cmd.(*CreateCommand); !ok {
+			return nil, ErrChunkAlreadyCreated
+		}
+	}
+
+	// if state is deleted, return error
 	if domain.StateDeleted.Is(c.state) {
 		return nil, ErrChunkIsDeleted
 	}
@@ -67,6 +78,9 @@ func (c *Chunk) HandleEvent(_ context.Context, event *aggr.Event) error {
 	case CreatedEventType:
 		return HandleCreatedEvent(c, event)
 	}
+
+	c.Version = event.Version
+	c.events = append(c.events, event)
 
 	return nil
 }

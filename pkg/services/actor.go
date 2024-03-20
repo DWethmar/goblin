@@ -9,8 +9,8 @@ import (
 )
 
 type Actors struct {
-	repo       actor.Repository
-	commandBus *aggr.CommandBus
+	actorReader actor.Reader
+	commandBus  *aggr.CommandBus
 }
 
 func (a *Actors) Create(ctx context.Context, id string, name string, x, y int) error {
@@ -37,16 +37,16 @@ func (a *Actors) Move(ctx context.Context, id string, x, y int) error {
 }
 
 func (a *Actors) Get(ctx context.Context, id string) (*actor.Actor, error) {
-	return a.repo.Get(ctx, id)
+	return a.actorReader.Get(ctx, id)
 }
 
 func (a *Actors) List(ctx context.Context, offset, limit int) ([]*actor.Actor, error) {
-	return a.repo.List(ctx, offset, limit)
+	return a.actorReader.List(ctx, offset, limit)
 }
 
 func NewActorService(repo actor.Repository, commandBus *aggr.CommandBus) *Actors {
 	return &Actors{
-		repo:       repo,
-		commandBus: commandBus,
+		actorReader: repo,
+		commandBus:  commandBus,
 	}
 }
