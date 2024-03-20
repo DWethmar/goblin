@@ -1,4 +1,6 @@
 # goblin
+[go](https://go.dev)blin is a turnedbased roguelike game that you can play with friends. 
+Its in development and probably will take a while to be able to play a game lol.
 
 # lets move some goblins
 - run `make`
