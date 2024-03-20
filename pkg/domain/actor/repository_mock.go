@@ -5,6 +5,7 @@ import (
 	"errors"
 )
 
+// MockRepository is a mock implementation of the Repository interface
 type MockRepository struct {
 	GetFunc    func(ctx context.Context, id string) (*Actor, error)
 	CreateFunc func(ctx context.Context, a *Actor) (*Actor, error)

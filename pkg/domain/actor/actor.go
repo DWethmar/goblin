@@ -2,23 +2,23 @@ package actor
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/dwethmar/goblin/pkg/aggr"
+	"github.com/dwethmar/goblin/pkg/domain"
 )
 
 var _ aggr.Model = &Actor{}
 
 const AggregateType = "actor"
 
-type State int
-
-func (s State) Is(v State) bool { return s == v }
-
-const (
-	StateDraft State = iota
-	StateCreated
-	StateDeleted
+var (
+	ErrNilCommand          = errors.New("command is nil")
+	ErrUnknownCommandType  = errors.New("unknown command type")
+	ErrActorIsDeleted      = errors.New("actor is deleted")
+	ErrActorDoesNotExist   = errors.New("actor does not exist")
+	ErrActorAlreadyCreated = errors.New("actor already created")
 )
 
 type Actor struct {
@@ -27,29 +27,44 @@ type Actor struct {
 	Name    string
 	X, Y    int
 
-	state  State
+	state  domain.State
 	events []*aggr.Event
+}
+
+func New(id, name string, x, y int) *Actor {
+	return &Actor{
+		ID:     id,
+		Name:   name,
+		state:  domain.StateDraft,
+		X:      x,
+		Y:      y,
+		events: []*aggr.Event{},
+	}
 }
 
 func (a *Actor) AggregateID() string   { return a.ID }
 func (a *Actor) AggregateVersion() int { return a.Version }
 
 func (a *Actor) HandleCommand(cmd aggr.Command) (*aggr.Event, error) {
-	if StateDeleted.Is(a.state) {
-		return nil, fmt.Errorf("actor deleted")
+	if cmd == nil {
+		return nil, ErrNilCommand
+	}
+
+	if domain.StateDeleted.Is(a.state) {
+		return nil, ErrActorIsDeleted
 	}
 
 	// if state is draft and command is not create, return error
-	if StateDraft.Is(a.state) {
+	if domain.StateDraft.Is(a.state) {
 		if _, ok := cmd.(*CreateCommand); !ok {
-			return nil, fmt.Errorf("actor does not exist")
+			return nil, ErrActorDoesNotExist
 		}
 	}
 
 	// if state is created and command is create, return error
-	if StateCreated.Is(a.state) {
+	if domain.StateCreated.Is(a.state) {
 		if _, ok := cmd.(*CreateCommand); ok {
-			return nil, fmt.Errorf("actor already created")
+			return nil, ErrActorAlreadyCreated
 		}
 	}
 
@@ -60,9 +75,9 @@ func (a *Actor) HandleCommand(cmd aggr.Command) (*aggr.Event, error) {
 		return DestroyCommandHandler(a, c)
 	case *MoveCommand:
 		return MoveCommandHandler(a, c)
+	default:
+		return nil, ErrUnknownCommandType
 	}
-
-	return nil, nil
 }
 
 func (a *Actor) HandleEvent(_ context.Context, event *aggr.Event) error {
@@ -75,9 +90,9 @@ func (a *Actor) HandleEvent(_ context.Context, event *aggr.Event) error {
 
 		a.ID = event.AggregateID
 		a.Name = data.Name
-		a.state = StateCreated
+		a.state = domain.StateCreated
 	case DestroyedEventType:
-		a.state = StateDeleted
+		a.state = domain.StateDeleted
 	case MovedEventType:
 		data, ok := event.Data.(*MovedEventData)
 		if !ok {
@@ -94,4 +109,4 @@ func (a *Actor) HandleEvent(_ context.Context, event *aggr.Event) error {
 
 func (a *Actor) AggregateEvents() []*aggr.Event { return a.events }
 func (a *Actor) ClearAggregateEvents()          { a.events = []*aggr.Event{} }
-func (a *Actor) Deleted() bool                  { return StateDeleted.Is(a.state) }
+func (a *Actor) Deleted() bool                  { return domain.StateDeleted.Is(a.state) }

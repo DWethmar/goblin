@@ -15,9 +15,7 @@ func init() {
 func RegisterFactory(f *aggrstore.Factory) {
 	f.Register(AggregateType, func(aggregateID string) *aggr.Aggregate {
 		return &aggr.Aggregate{
-			Model: &Actor{
-				ID: aggregateID,
-			},
+			Model: New(aggregateID, "", 0, 0),
 		}
 	})
 }
