@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/dwethmar/goblin/pkg/aggr"
-	"github.com/dwethmar/goblin/pkg/aggr/aggrstore"
+	"github.com/dwethmar/goblin/pkg/aggr/es"
 	eventencoding "github.com/dwethmar/goblin/pkg/aggr/event/encoding"
 	eventkv "github.com/dwethmar/goblin/pkg/aggr/event/kv"
 	"github.com/dwethmar/goblin/pkg/aggr/replay"
@@ -27,7 +27,7 @@ type Config struct {
 }
 
 func SetupGame(ctx context.Context, c Config) (*game.Game, func() error, error) {
-	db, err := bbolt.Connect(fmt.Sprintf("./.tmp/%s.db", Game))
+	db, err := bbolt.Connect(fmt.Sprintf("./.tmp/%s.db", c.Game))
 	if err != nil {
 		return nil, nil, fmt.Errorf("connecting to db: %w", err)
 	}
@@ -50,10 +50,10 @@ func SetupGame(ctx context.Context, c Config) (*game.Game, func() error, error) 
 	eventBus.Subscribe(chunk.MatchAllEvents, chunk.ChunkSinkHandler(chunkRepo))
 
 	// Create the agregate factory and register agregates
-	aggregateFactory := aggrstore.NewFactory(actor.RegisterFactory, chunk.RegisterFactory)
+	aggregateFactory := aggr.NewFactory(actor.RegisterFactory, chunk.RegisterFactory)
 
 	// Create the command bus
-	aggregateStore := aggrstore.NewStore(eventStore, aggregateFactory)
+	aggregateStore := es.NewStore(eventStore, aggregateFactory)
 	commandBus := aggr.NewCommandBus(aggregateStore, eventBus)
 
 	// replay all events and rebuild the state

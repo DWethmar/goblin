@@ -77,12 +77,6 @@ func TestActor_AggregateVersion(t *testing.T) {
 	}
 }
 
-type unknownCommand struct{}
-
-func (c *unknownCommand) CommandType() string   { return "unknown" }
-func (c *unknownCommand) AggregateID() string   { return "" }
-func (c *unknownCommand) AggregateType() string { return "unknown" }
-
 func TestActor_HandleCommand(t *testing.T) {
 	type fields struct {
 		ID      string
@@ -94,6 +88,7 @@ func TestActor_HandleCommand(t *testing.T) {
 		events  []*aggr.Event
 	}
 	type args struct {
+		ctx context.Context
 		cmd aggr.Command
 	}
 	tests := []struct {
@@ -121,7 +116,9 @@ func TestActor_HandleCommand(t *testing.T) {
 			fields: fields{
 				state: domain.StateCreated,
 			},
-			args:    args{cmd: &unknownCommand{}},
+			args: args{
+				cmd: &aggr.MockAggregate{},
+			},
 			want:    nil,
 			wantErr: true,
 			Err:     ErrUnknownCommandType,
@@ -188,7 +185,7 @@ func TestActor_HandleCommand(t *testing.T) {
 			},
 			want: &aggr.Event{
 				AggregateID: "123",
-				Type:        AggregateType,
+				Type:        DestroyedEventType,
 				Data:        nil,
 				Version:     1,
 				Timestamp:   time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -207,7 +204,7 @@ func TestActor_HandleCommand(t *testing.T) {
 				state:   tt.fields.state,
 				events:  tt.fields.events,
 			}
-			got, err := a.HandleCommand(tt.args.cmd)
+			got, err := a.HandleCommand(tt.args.ctx, tt.args.cmd)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Actor.HandleCommand() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -365,4 +362,21 @@ func TestActor_Deleted(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestNew(t *testing.T) {
+	t.Run("should return new instance of Actor", func(t *testing.T) {
+		got := New("1", "test", 1, 1)
+		want := &Actor{
+			ID:     "1",
+			Name:   "test",
+			state:  domain.StateDraft,
+			X:      1,
+			Y:      1,
+			events: []*aggr.Event{},
+		}
+		if diff := cmp.Diff(got, want, cmp.AllowUnexported(Actor{})); diff != "" {
+			t.Errorf("New() mismatch (-want +got):\n%s", diff)
+		}
+	})
 }

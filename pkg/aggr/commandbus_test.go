@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestCommandBus_Dispatch(t *testing.T) {
@@ -18,16 +20,16 @@ func TestCommandBus_Dispatch(t *testing.T) {
 				return &Aggregate{
 					Model: &MockAggregate{
 						ID: "1",
-						CommandHandlerFunc: func(c Command) (*Event, error) {
+						CommandHandlerFunc: func(_ context.Context, c Command) (*Event, error) {
 							return &Event{
-								AggregateID: "1",
+								AggregateID: c.AggregateID(),
 								Type:        "test",
 								Data:        "test",
 								Version:     1,
 								Timestamp:   time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 							}, nil
 						},
-						EventHandlerFunc: func(e *Event) error { return nil },
+						EventHandlerFunc: func(_ context.Context, e *Event) error { return nil },
 					},
 				}, nil
 
@@ -37,10 +39,26 @@ func TestCommandBus_Dispatch(t *testing.T) {
 
 		eventBus := &EventBus{}
 		commandBus := NewCommandBus(aggregateStore, eventBus)
-		err := commandBus.Dispatch(context.TODO(), &MockCommand{})
+		e, err := commandBus.HandleCommand(context.TODO(), &MockCommand{})
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
+
+		want := &Event{
+			AggregateID: "1",
+			Type:        "test",
+			Data:        "test",
+			Version:     1,
+			Timestamp:   time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+		}
+
+		if diff := cmp.Diff(e, want); diff != "" {
+			t.Errorf("unexpected event (-got +want):\n%s", diff)
+		}
+	})
+
+	t.Run("should get aggregate and clear its events", func(t *testing.T) {
+
 	})
 }
 

@@ -1,8 +1,10 @@
 package aggr
 
+import "context"
+
 type CommandHandler interface {
 	// HandleCommand applies a command to the aggregate.
-	HandleCommand(cmd Command) (*Event, error)
+	HandleCommand(ctx context.Context, cmd Command) (*Event, error)
 }
 
 type CommandHandlerFunc func(cmd Command) (*Event, error)

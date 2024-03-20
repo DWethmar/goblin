@@ -15,7 +15,7 @@ func CreateCommandHandler(a *Actor, cmd *CreateCommand) (*aggr.Event, error) {
 		return nil, fmt.Errorf("name can't be empty")
 	}
 
-	if cmd.Timestamp.IsZero() {
+	if cmd.CommandTimestamp().IsZero() {
 		return nil, fmt.Errorf("destroyed at can't be zero")
 	}
 
@@ -28,7 +28,7 @@ func CreateCommandHandler(a *Actor, cmd *CreateCommand) (*aggr.Event, error) {
 			Y:    cmd.Y,
 		},
 		Version:   a.Version + 1,
-		Timestamp: cmd.Timestamp,
+		Timestamp: cmd.CommandTimestamp(),
 	}, nil
 }
 
@@ -37,7 +37,7 @@ func DestroyCommandHandler(a *Actor, cmd *DestroyCommand) (*aggr.Event, error) {
 		return nil, fmt.Errorf("actor id can't be empty")
 	}
 
-	if cmd.Timestamp.IsZero() {
+	if cmd.CommandTimestamp().IsZero() {
 		return nil, fmt.Errorf("destroyed at can't be zero")
 	}
 
@@ -46,7 +46,7 @@ func DestroyCommandHandler(a *Actor, cmd *DestroyCommand) (*aggr.Event, error) {
 		Type:        DestroyedEventType,
 		Data:        nil,
 		Version:     a.Version + 1,
-		Timestamp:   cmd.Timestamp,
+		Timestamp:   cmd.CommandTimestamp(),
 	}, nil
 }
 
@@ -59,6 +59,6 @@ func MoveCommandHandler(a *Actor, cmd *MoveCommand) (*aggr.Event, error) {
 			Y: cmd.Y,
 		},
 		Version:   a.Version + 1,
-		Timestamp: cmd.Timestamp,
+		Timestamp: cmd.CommandTimestamp(),
 	}, nil
 }

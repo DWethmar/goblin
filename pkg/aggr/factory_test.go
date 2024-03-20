@@ -1,16 +1,14 @@
-package aggrstore
+package aggr
 
 import (
 	"errors"
 	"testing"
-
-	"github.com/dwethmar/goblin/pkg/aggr"
 )
 
 func TestFactory_Register(t *testing.T) {
 	t.Run("Register", func(t *testing.T) {
 		f := NewFactory()
-		f.Register("test", func(aggregateID string) *aggr.Aggregate {
+		f.Register("test", func(aggregateID string) *Aggregate {
 			return nil
 		})
 
@@ -23,9 +21,9 @@ func TestFactory_Register(t *testing.T) {
 func TestFactory_Create(t *testing.T) {
 	t.Run("Create", func(t *testing.T) {
 		f := NewFactory()
-		f.Register("test", func(aggregateID string) *aggr.Aggregate {
-			return &aggr.Aggregate{
-				Model: &aggr.MockAggregate{
+		f.Register("test", func(aggregateID string) *Aggregate {
+			return &Aggregate{
+				Model: &MockAggregate{
 					ID: aggregateID,
 				},
 			}
@@ -60,7 +58,7 @@ func TestNewFactory(t *testing.T) {
 
 	t.Run("NewFactory with options", func(t *testing.T) {
 		f := NewFactory(func(f *Factory) {
-			f.Register("test", func(aggregateID string) *aggr.Aggregate {
+			f.Register("test", func(aggregateID string) *Aggregate {
 				return nil
 			})
 		})

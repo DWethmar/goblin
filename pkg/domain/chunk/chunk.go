@@ -49,7 +49,7 @@ func New(id string, x, y int) *Chunk {
 func (c *Chunk) AggregateID() string    { return c.ID }
 func (c *Chunk) AggregateVersion() uint { return c.Version }
 
-func (c *Chunk) HandleCommand(cmd aggr.Command) (*aggr.Event, error) {
+func (c *Chunk) HandleCommand(_ context.Context, cmd aggr.Command) (*aggr.Event, error) {
 	if cmd == nil {
 		return nil, ErrNilCommand
 	}

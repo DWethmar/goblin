@@ -45,7 +45,7 @@ func New(id, name string, x, y int) *Actor {
 func (a *Actor) AggregateID() string    { return a.ID }
 func (a *Actor) AggregateVersion() uint { return a.Version }
 
-func (a *Actor) HandleCommand(cmd aggr.Command) (*aggr.Event, error) {
+func (a *Actor) HandleCommand(ctx context.Context, cmd aggr.Command) (*aggr.Event, error) {
 	if cmd == nil {
 		return nil, ErrNilCommand
 	}

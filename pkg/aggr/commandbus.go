@@ -2,75 +2,51 @@ package aggr
 
 import (
 	"context"
-	"errors"
 	"fmt"
 )
 
-var (
-	ErrCommandHandlerNotFound = errors.New("command handler not found")
-)
-
+// CommandBus applies commands to aggregates and publishes events.
 type CommandBus struct {
 	aggregateStore AggregateStore
-	eventBus       *EventBus
+	eventBus       EventHandler
 }
 
-func (b *CommandBus) Dispatch(ctx context.Context, commands ...Command) error {
-	aggregates := make([]*Aggregate, 0, len(commands))
-	events := make([]*Event, 0, len(commands))
-
-	for _, command := range commands {
-		// cache aggregate to avoid multiple Get calls
-		var aggregate *Aggregate
-		for _, a := range aggregates {
-			if a.AggregateID() == command.AggregateID() {
-				aggregate = a
-				break
-			}
-		}
-
-		// get aggregate from store if not cached
-		if aggregate == nil {
-			var err error
-			aggregate, err = b.aggregateStore.Get(ctx, command.AggregateType(), command.AggregateID())
-			if err != nil {
-				return fmt.Errorf("failed to get aggregate: %w", err)
-			}
-
-			if aggregate == nil {
-				return fmt.Errorf("aggregate is nil")
-			}
-
-			aggregates = append(aggregates, aggregate)
-		}
-
-		event, err := aggregate.HandleCommand(command)
-		if err != nil {
-			return fmt.Errorf("failed to dispatch command: %w", err)
-		}
-
-		if err := aggregate.HandleEvent(ctx, event); err != nil {
-			return fmt.Errorf("failed to dispatch command: %w", err)
-		}
-
-		events = append(events, event)
+func (b *CommandBus) HandleCommand(ctx context.Context, cmd Command) (*Event, error) {
+	a, err := b.aggregateStore.Get(ctx, cmd.AggregateType(), cmd.AggregateID())
+	if err != nil {
+		return nil, fmt.Errorf("failed to get aggregate from store: %w", err)
 	}
 
-	if err := b.aggregateStore.Save(ctx, aggregates...); err != nil {
-		return fmt.Errorf("failed to save aggregate: %w", err)
+	if a == nil {
+		return nil, fmt.Errorf("aggregate is nil")
 	}
 
-	for _, event := range events {
-		if err := b.eventBus.Publish(ctx, event); err != nil {
-			return fmt.Errorf("failed to publish event: %w", err)
-		}
+	defer func() {
+		a.ClearAggregateEvents()
+	}()
+
+	event, err := a.HandleCommand(ctx, cmd)
+	if err != nil {
+		return nil, fmt.Errorf("failed to use command on aggregate: %w", err)
 	}
 
-	return nil
+	if err := a.HandleEvent(ctx, event); err != nil {
+		return nil, fmt.Errorf("failed to apply event on aggregate: %w", err)
+	}
+
+	if err := b.aggregateStore.Save(ctx, a); err != nil {
+		return nil, fmt.Errorf("failed to save aggregate: %w", err)
+	}
+
+	if err := b.eventBus.HandleEvent(ctx, event); err != nil {
+		return nil, fmt.Errorf("failed to publish event: %w", err)
+	}
+
+	return event, nil
 }
 
 // NewCommandBus returns a new instance of CommandBus.
-func NewCommandBus(aggregateStore AggregateStore, eventBus *EventBus) *CommandBus {
+func NewCommandBus(aggregateStore AggregateStore, eventBus EventHandler) *CommandBus {
 	return &CommandBus{
 		aggregateStore: aggregateStore,
 		eventBus:       eventBus,

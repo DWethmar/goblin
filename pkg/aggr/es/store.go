@@ -1,4 +1,4 @@
-package aggrstore
+package es
 
 import (
 	"context"
@@ -12,7 +12,7 @@ var _ aggr.AggregateStore = &Store{}
 
 type Store struct {
 	eventStore event.Store
-	factory    *Factory
+	factory    *aggr.Factory
 }
 
 func (s *Store) Get(ctx context.Context, aggregateType, aggregateID string) (*aggr.Aggregate, error) {
@@ -56,7 +56,7 @@ func (s *Store) Save(ctx context.Context, a ...*aggr.Aggregate) error {
 	return nil
 }
 
-func NewStore(eventStore event.Store, factory *Factory) *Store {
+func NewStore(eventStore event.Store, factory *aggr.Factory) *Store {
 	return &Store{
 		eventStore: eventStore,
 		factory:    factory,

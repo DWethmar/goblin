@@ -20,8 +20,8 @@ func (bus *EventBus) Subscribe(matcher Matcher, handler EventHandler) {
 	bus.handlers = append(bus.handlers, handlerMatcherPair{matcher: matcher, handler: handler})
 }
 
-// Publish publishes the event to the EventBus.
-func (bus *EventBus) Publish(ctx context.Context, event *Event) error {
+// HandleEvent handles an event by calling the appropriate handler.
+func (bus *EventBus) HandleEvent(ctx context.Context, event *Event) error {
 	for _, pair := range bus.handlers {
 		if pair.matcher.Match(event) {
 			if err := pair.handler.HandleEvent(ctx, event); err != nil {
