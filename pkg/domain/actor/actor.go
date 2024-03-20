@@ -3,7 +3,6 @@ package actor
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/dwethmar/goblin/pkg/aggr"
 )
@@ -27,8 +26,8 @@ type Actor struct {
 	Version int
 	Name    string
 	X, Y    int
-	state   State
 
+	state  State
 	events []*aggr.Event
 }
 
@@ -43,7 +42,7 @@ func (a *Actor) HandleCommand(cmd aggr.Command) (*aggr.Event, error) {
 	// if state is draft and command is not create, return error
 	if StateDraft.Is(a.state) {
 		if _, ok := cmd.(*CreateCommand); !ok {
-			return nil, fmt.Errorf("actor not created")
+			return nil, fmt.Errorf("actor does not exist")
 		}
 	}
 
@@ -56,32 +55,11 @@ func (a *Actor) HandleCommand(cmd aggr.Command) (*aggr.Event, error) {
 
 	switch c := cmd.(type) {
 	case *CreateCommand:
-		if c.Name == "" {
-			return nil, fmt.Errorf("name can't be empty")
-		}
-
-		return &aggr.Event{
-			AggregateID: c.ActorID,
-			Type:        CreatedEventType,
-			Data: &CreatedEventData{
-				Name: c.Name,
-				X:    c.X,
-				Y:    c.Y,
-			},
-			Version:   a.Version + 1,
-			CreatedAt: time.Now(),
-		}, nil
+		return CreateCommandHandler(a, c)
+	case *DestroyCommand:
+		return DestroyCommandHandler(a, c)
 	case *MoveCommand:
-		return &aggr.Event{
-			AggregateID: c.ActorID,
-			Type:        MovedEventType,
-			Data: &MovedEventData{
-				X: c.X,
-				Y: c.Y,
-			},
-			Version:   a.Version + 1,
-			CreatedAt: time.Now(),
-		}, nil
+		return MoveCommandHandler(a, c)
 	}
 
 	return nil, nil
@@ -99,10 +77,6 @@ func (a *Actor) HandleEvent(_ context.Context, event *aggr.Event) error {
 		a.Name = data.Name
 		a.state = StateCreated
 	case DestroyedEventType:
-		_, ok := event.Data.(*DestroyedEventData)
-		if !ok {
-			return fmt.Errorf("expected *DestroyedEventData, got %T", event.Data)
-		}
 		a.state = StateDeleted
 	case MovedEventType:
 		data, ok := event.Data.(*MovedEventData)

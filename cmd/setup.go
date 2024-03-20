@@ -19,8 +19,9 @@ import (
 )
 
 type Config struct {
-	Logger *slog.Logger
-	Game   string
+	Logger     *slog.Logger
+	Game       string
+	LogDBStats bool
 }
 
 func SetupGame(ctx context.Context, c Config) (*game.Game, func() error, error) {
@@ -29,8 +30,10 @@ func SetupGame(ctx context.Context, c Config) (*game.Game, func() error, error) 
 		return nil, nil, fmt.Errorf("connecting to db: %w", err)
 	}
 
-	// Log the database stats every 5 seconds
-	bbolt.Stats(ctx, db, time.Second*5, c.Logger)
+	if c.LogDBStats {
+		// Log the database stats every 5 seconds
+		bbolt.Stats(ctx, db, time.Second*5, c.Logger)
+	}
 
 	bboltDB := bbolt.New([]byte("events"), db)
 	eventStore := eventkv.New(bboltDB, &eventEncoding.Decoder{}, &eventEncoding.Encoder{})

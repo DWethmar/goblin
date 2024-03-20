@@ -9,7 +9,6 @@ import (
 
 func init() {
 	gob.Register(&CreatedEventData{})
-	gob.Register(&DestroyedEventData{})
 	gob.Register(&MovedEventData{})
 }
 

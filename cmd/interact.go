@@ -87,9 +87,8 @@ var interactCmd = &cobra.Command{
 			}
 		}()
 
-		<-done // Wait for processing to complete or be cancelled.
-		// At this point, defer functions will run, ensuring cleanup.
-		return nil
+		<-done     // Wait for processing to complete or be cancelled.
+		return nil // At this point, defer functions will run, ensuring cleanup.
 	},
 	ValidArgs: []string{"aggregate-id"},
 }

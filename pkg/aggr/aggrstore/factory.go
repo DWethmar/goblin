@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	ErrAggregateTypeAlreadyRegistered = errors.New("aggregate type already registered")
+	ErrorAggregateTypeNotFound = errors.New("aggregate type not found")
 )
 
 type Factory struct {
@@ -22,7 +22,7 @@ func (f *Factory) Register(aggregateType string, ff func(aggregateID string) *ag
 func (f *Factory) Create(aggregateType string, aggregateID string) (*aggr.Aggregate, error) {
 	createFunc, ok := f.createFuncs[aggregateType]
 	if !ok {
-		return nil, fmt.Errorf("aggregate type %q not found", aggregateType)
+		return nil, fmt.Errorf("aggregate type %q not found: %w", aggregateType, ErrorAggregateTypeNotFound)
 	}
 	return createFunc(aggregateID), nil
 }
