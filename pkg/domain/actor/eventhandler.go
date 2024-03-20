@@ -9,8 +9,8 @@ import (
 	"github.com/dwethmar/goblin/pkg/domain"
 )
 
-// ActorEventsMatcher is a matcher that can be used to match all actor events.
-var ActorEventsMatcher = aggr.MatchEvents{
+// MatchAllEvents is a matcher that can be used to match all actor events.
+var MatchAllEvents = aggr.MatchEvents{
 	CreatedEventType,
 	DestroyedEventType,
 	MovedEventType,

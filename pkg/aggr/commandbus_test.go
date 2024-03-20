@@ -24,7 +24,7 @@ func TestCommandBus_Dispatch(t *testing.T) {
 								Type:        "test",
 								Data:        "test",
 								Version:     1,
-								CreatedAt:   time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+								Timestamp:   time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 							}, nil
 						},
 						EventHandlerFunc: func(e *Event) error { return nil },

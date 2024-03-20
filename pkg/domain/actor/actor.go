@@ -23,7 +23,7 @@ var (
 
 type Actor struct {
 	ID      string
-	Version int
+	Version uint
 	Name    string
 	X, Y    int
 
@@ -42,8 +42,8 @@ func New(id, name string, x, y int) *Actor {
 	}
 }
 
-func (a *Actor) AggregateID() string   { return a.ID }
-func (a *Actor) AggregateVersion() int { return a.Version }
+func (a *Actor) AggregateID() string    { return a.ID }
+func (a *Actor) AggregateVersion() uint { return a.Version }
 
 func (a *Actor) HandleCommand(cmd aggr.Command) (*aggr.Event, error) {
 	if cmd == nil {
@@ -81,6 +81,10 @@ func (a *Actor) HandleCommand(cmd aggr.Command) (*aggr.Event, error) {
 }
 
 func (a *Actor) HandleEvent(_ context.Context, event *aggr.Event) error {
+	if err := event.Validate(); err != nil {
+		return fmt.Errorf("invalid event: %w", err)
+	}
+
 	var err error
 	switch event.Type {
 	case CreatedEventType:

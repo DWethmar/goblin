@@ -31,6 +31,6 @@ func CreateChunkCommandHandler(c *Chunk, cmd *CreateCommand) (*aggr.Event, error
 			Tiles:  cmd.Tiles,
 		},
 		Version:   c.Version + 1,
-		CreatedAt: time.Now(),
+		Timestamp: time.Now(),
 	}, nil
 }

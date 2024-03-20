@@ -3,6 +3,7 @@ package chunk
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/dwethmar/goblin/pkg/aggr"
 	"github.com/dwethmar/goblin/pkg/domain"
@@ -23,7 +24,7 @@ var (
 
 type Chunk struct {
 	ID      string
-	Version int
+	Version uint
 	X       int
 	Y       int
 	Width   int
@@ -45,8 +46,8 @@ func New(id string, x, y int) *Chunk {
 	}
 }
 
-func (c *Chunk) AggregateID() string   { return c.ID }
-func (c *Chunk) AggregateVersion() int { return c.Version }
+func (c *Chunk) AggregateID() string    { return c.ID }
+func (c *Chunk) AggregateVersion() uint { return c.Version }
 
 func (c *Chunk) HandleCommand(cmd aggr.Command) (*aggr.Event, error) {
 	if cmd == nil {
@@ -74,6 +75,10 @@ func (c *Chunk) HandleCommand(cmd aggr.Command) (*aggr.Event, error) {
 }
 
 func (c *Chunk) HandleEvent(_ context.Context, event *aggr.Event) error {
+	if err := event.Validate(); err != nil {
+		return fmt.Errorf("invalid event: %w", err)
+	}
+
 	switch event.Type {
 	case CreatedEventType:
 		return HandleCreatedEvent(c, event)

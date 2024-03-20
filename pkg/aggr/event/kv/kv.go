@@ -16,7 +16,7 @@ type Store struct {
 	eventEncoder event.Encoder
 }
 
-func eventID(aggregateID string, version int) []byte {
+func eventID(aggregateID string, version uint) []byte {
 	return []byte(fmt.Sprintf("%s-%d", aggregateID, version))
 }
 

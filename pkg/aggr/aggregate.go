@@ -6,7 +6,7 @@ type Model interface {
 	AggregateID() string
 	AggregateEvents() []*Event
 	ClearAggregateEvents()
-	AggregateVersion() int
+	AggregateVersion() uint
 }
 
 // Aggregate is the interface that wraps the basic methods for an aggregate.

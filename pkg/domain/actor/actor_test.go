@@ -5,6 +5,7 @@ import (
 	"errors"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/dwethmar/goblin/pkg/aggr"
 	"github.com/dwethmar/goblin/pkg/domain"
@@ -49,12 +50,12 @@ func TestActor_AggregateID(t *testing.T) {
 
 func TestActor_AggregateVersion(t *testing.T) {
 	type fields struct {
-		Version int
+		Version uint
 	}
 	tests := []struct {
 		name   string
 		fields fields
-		want   int
+		want   uint
 	}{
 		{
 			name: "should return correct version",
@@ -85,7 +86,7 @@ func (c *unknownCommand) AggregateType() string { return "unknown" }
 func TestActor_HandleCommand(t *testing.T) {
 	type fields struct {
 		ID      string
-		Version int
+		Version uint
 		Name    string
 		X       int
 		Y       int
@@ -161,6 +162,39 @@ func TestActor_HandleCommand(t *testing.T) {
 			wantErr: true,
 			Err:     ErrActorAlreadyCreated,
 		},
+		{
+			name: "should return error if deletig a draft actor",
+			fields: fields{
+				state: domain.StateDeleted,
+			},
+			args: args{
+				cmd: &MoveCommand{},
+			},
+			want:    nil,
+			wantErr: true,
+			Err:     ErrActorIsDeleted,
+		},
+		{
+			name: "should return no error when deleting an created actor",
+			fields: fields{
+				ID:    "123",
+				state: domain.StateCreated,
+			},
+			args: args{
+				cmd: &DestroyCommand{
+					ActorID:   "123",
+					Timestamp: time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
+				},
+			},
+			want: &aggr.Event{
+				AggregateID: "123",
+				Type:        AggregateType,
+				Data:        nil,
+				Version:     1,
+				Timestamp:   time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -194,7 +228,7 @@ func TestActor_HandleCommand(t *testing.T) {
 func TestActor_HandleEvent(t *testing.T) {
 	type fields struct {
 		ID      string
-		Version int
+		Version uint
 		Name    string
 		X       int
 		Y       int
@@ -234,7 +268,7 @@ func TestActor_HandleEvent(t *testing.T) {
 func TestActor_AggregateEvents(t *testing.T) {
 	type fields struct {
 		ID      string
-		Version int
+		Version uint
 		Name    string
 		X       int
 		Y       int
@@ -269,7 +303,7 @@ func TestActor_AggregateEvents(t *testing.T) {
 func TestActor_ClearAggregateEvents(t *testing.T) {
 	type fields struct {
 		ID      string
-		Version int
+		Version uint
 		Name    string
 		X       int
 		Y       int
@@ -301,7 +335,7 @@ func TestActor_ClearAggregateEvents(t *testing.T) {
 func TestActor_Deleted(t *testing.T) {
 	type fields struct {
 		ID      string
-		Version int
+		Version uint
 		Name    string
 		X       int
 		Y       int

@@ -9,7 +9,7 @@ var _ Model = &MockAggregate{}
 
 type MockAggregate struct {
 	ID                 string
-	Version            int
+	Version            uint
 	Events             []*Event
 	CommandHandlerFunc func(Command) (*Event, error)
 	EventHandlerFunc   func(*Event) error
@@ -19,7 +19,7 @@ func (a *MockAggregate) AggregateID() string {
 	return a.ID
 }
 
-func (a *MockAggregate) AggregateVersion() int {
+func (a *MockAggregate) AggregateVersion() uint {
 	return a.Version
 }
 

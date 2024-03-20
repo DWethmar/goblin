@@ -2,7 +2,6 @@ package actor
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/dwethmar/goblin/pkg/aggr"
 )
@@ -16,6 +15,10 @@ func CreateCommandHandler(a *Actor, cmd *CreateCommand) (*aggr.Event, error) {
 		return nil, fmt.Errorf("name can't be empty")
 	}
 
+	if cmd.Timestamp.IsZero() {
+		return nil, fmt.Errorf("destroyed at can't be zero")
+	}
+
 	return &aggr.Event{
 		AggregateID: cmd.ActorID,
 		Type:        CreatedEventType,
@@ -25,17 +28,25 @@ func CreateCommandHandler(a *Actor, cmd *CreateCommand) (*aggr.Event, error) {
 			Y:    cmd.Y,
 		},
 		Version:   a.Version + 1,
-		CreatedAt: time.Now(),
+		Timestamp: cmd.Timestamp,
 	}, nil
 }
 
 func DestroyCommandHandler(a *Actor, cmd *DestroyCommand) (*aggr.Event, error) {
+	if cmd.ActorID == "" {
+		return nil, fmt.Errorf("actor id can't be empty")
+	}
+
+	if cmd.Timestamp.IsZero() {
+		return nil, fmt.Errorf("destroyed at can't be zero")
+	}
+
 	return &aggr.Event{
 		AggregateID: cmd.ActorID,
 		Type:        DestroyedEventType,
 		Data:        nil,
 		Version:     a.Version + 1,
-		CreatedAt:   time.Now(),
+		Timestamp:   cmd.Timestamp,
 	}, nil
 }
 
@@ -48,6 +59,6 @@ func MoveCommandHandler(a *Actor, cmd *MoveCommand) (*aggr.Event, error) {
 			Y: cmd.Y,
 		},
 		Version:   a.Version + 1,
-		CreatedAt: time.Now(),
+		Timestamp: cmd.Timestamp,
 	}, nil
 }
