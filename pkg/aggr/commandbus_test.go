@@ -11,37 +11,37 @@ import (
 
 func TestCommandBus_Dispatch(t *testing.T) {
 	t.Run("should dispatch command", func(t *testing.T) {
-		aggregateStore := &MockAggregateStore{
-			GetFunc: func(ctx context.Context, aggregateType, aggregateID string) (*Aggregate, error) {
-				if ctx != context.TODO() {
-					t.Errorf("unexpected context: %v", ctx)
-				}
-
-				return &Aggregate{
-					Model: &MockAggregate{
-						ID: "1",
-						CommandHandlerFunc: func(_ context.Context, c Command) (*Event, error) {
-							return &Event{
-								AggregateID: c.AggregateID(),
-								Type:        "test",
-								Data:        "test",
-								Version:     1,
-								Timestamp:   time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
-							}, nil
-						},
-						EventHandlerFunc: func(_ context.Context, e *Event) error { return nil },
-					},
-				}, nil
-
+		a := &Aggregate{
+			Model: &MockAggregate{
+				CommandHandlerFunc: func(_ context.Context, c Command) (*Event, error) {
+					return &Event{
+						AggregateID: c.AggregateID(),
+						Type:        "test",
+						Data:        "test",
+						Version:     1,
+						Timestamp:   time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					}, nil
+				},
+				EventHandlerFunc: func(_ context.Context, e *Event) error { return nil },
 			},
+		}
+
+		aggregateStore := &MockAggregateStore{
+			GetFunc:  func(ctx context.Context, aggregateType, aggregateID string) (*Aggregate, error) { return a, nil },
 			SaveFunc: func(_ context.Context, _ ...*Aggregate) error { return nil },
 		}
 
 		eventBus := &EventBus{}
 		commandBus := NewCommandBus(aggregateStore, eventBus)
-		e, err := commandBus.HandleCommand(context.TODO(), &MockCommand{})
+		e, err := commandBus.HandleCommand(context.TODO(), &MockCommand{
+			aggregateID: "1",
+		})
+
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
+		}
+		if e == nil {
+			t.Errorf("expected event, got nil")
 		}
 
 		want := &Event{
@@ -58,7 +58,38 @@ func TestCommandBus_Dispatch(t *testing.T) {
 	})
 
 	t.Run("should get aggregate and clear its events", func(t *testing.T) {
+		a := &Aggregate{
+			Model: &MockAggregate{
+				CommandHandlerFunc: func(_ context.Context, c Command) (*Event, error) {
+					return &Event{
+						AggregateID: c.AggregateID(),
+						Type:        "test",
+						Data:        "test",
+						Version:     1,
+						Timestamp:   time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					}, nil
+				},
+				EventHandlerFunc: func(_ context.Context, e *Event) error { return nil },
+			},
+		}
 
+		aggregateStore := &MockAggregateStore{
+			GetFunc:  func(ctx context.Context, aggregateType, aggregateID string) (*Aggregate, error) { return a, nil },
+			SaveFunc: func(_ context.Context, _ ...*Aggregate) error { return nil },
+		}
+
+		eventBus := &EventBus{}
+		commandBus := NewCommandBus(aggregateStore, eventBus)
+		_, err := commandBus.HandleCommand(context.TODO(), &MockCommand{
+			aggregateID: "1",
+		})
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+
+		if len(a.Model.AggregateEvents()) != 0 {
+			t.Errorf("unexpected events: %v", a.Model.AggregateEvents())
+		}
 	})
 }
 
