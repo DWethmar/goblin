@@ -46,34 +46,25 @@ var interactCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("setting up game: %w", err)
 		}
-		defer close()
+		defer close() // Ensure game resources are always cleaned up.
 
 		done := make(chan struct{}, 1)
 		sigs := make(chan os.Signal, 1)
 		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
-		go func() { // handle signals and begin shutdown
+		go func() {
 			<-sigs
-			done <- struct{}{}
+			cancel() // Trigger context cancellation.
 		}()
 
 		go func() {
-			<-done
-			cancel()
-		}()
-
-		go func() {
-			s := &game.CmdContext{
-				Logger:      logger,
-				AggregateID: aggregateId,
-			}
+			defer func() { done <- struct{}{} }() // Signal completion on exit.
 
 			var r io.Reader
 			if filePath != "" {
 				f, err := os.Open(filePath)
 				if err != nil {
 					logger.Error("opening file", "err", err)
-					done <- struct{}{}
 					return
 				}
 				defer f.Close()
@@ -82,14 +73,22 @@ var interactCmd = &cobra.Command{
 				r = os.Stdin
 			}
 
-			if err := ExecInput(ctx, r, g, s); err != nil {
-				logger.Error("exec lines", "err", err)
+			s := &game.Session{
+				Logger:      logger,
+				Game:        g,
+				AggregateID: aggregateId,
 			}
 
-			done <- struct{}{}
+			if err := ExecInput(ctx, r, s); err != nil {
+				if err != context.Canceled {
+					logger.Error("executing input", "err", err)
+				}
+				return
+			}
 		}()
 
-		<-done
+		<-done // Wait for processing to complete or be cancelled.
+		// At this point, defer functions will run, ensuring cleanup.
 		return nil
 	},
 	ValidArgs: []string{"aggregate-id"},

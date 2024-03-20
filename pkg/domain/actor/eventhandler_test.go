@@ -13,7 +13,7 @@ func TestActorSinkHandler(t *testing.T) {
 		actor := &Actor{
 			ID: "1",
 		}
-		repo := &RepositoryMock{
+		repo := &MockRepository{
 			GetFunc: func(ctx context.Context, id string) (*Actor, error) {
 				return actor, nil
 			},
@@ -27,8 +27,8 @@ func TestActorSinkHandler(t *testing.T) {
 			Type:        CreatedEventType,
 			Data:        &CreatedEventData{Name: "test"},
 		}
-		handler := ActorSinkHandler(ctx, repo)
-		if err := handler(event); err != nil {
+		handler := ActorSinkHandler(repo)
+		if err := handler(context.TODO(), event); err != nil {
 			t.Errorf("ActorSinkHandler() error = %v", err)
 			return
 		}

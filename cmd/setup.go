@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/dwethmar/goblin/pkg/aggr"
 	"github.com/dwethmar/goblin/pkg/aggr/aggrstore"
@@ -28,12 +29,16 @@ func SetupGame(ctx context.Context, c Config) (*game.Game, func() error, error) 
 		return nil, nil, fmt.Errorf("connecting to db: %w", err)
 	}
 
-	eventStore := eventkv.New(bbolt.New([]byte("events"), db), &eventEncoding.Decoder{}, &eventEncoding.Encoder{})
+	// Log the database stats every 5 seconds
+	bbolt.Stats(ctx, db, time.Second*5, c.Logger)
+
+	bboltDB := bbolt.New([]byte("events"), db)
+	eventStore := eventkv.New(bboltDB, &eventEncoding.Decoder{}, &eventEncoding.Encoder{})
 
 	actorRepo := actorMemory.NewRepository()
 	// Create the event bus and add event handlers
 	eventBus := aggr.NewEventBus()
-	eventBus.Subscribe(actor.ActorEventMatcher, actor.ActorSinkHandler(ctx, actorRepo))
+	eventBus.Subscribe(actor.ActorEventsMatcher, actor.ActorSinkHandler(actorRepo))
 
 	// Create the agregate factory and register agregates
 	aggregateFactory := aggrstore.NewFactory(actor.RegisterFactory)

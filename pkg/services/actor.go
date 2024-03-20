@@ -13,8 +13,8 @@ type Actors struct {
 	commandBus *aggr.CommandBus
 }
 
-func (a *Actors) Create(_ context.Context, id string, name string, x, y int) error {
-	if err := a.commandBus.Dispatch(&actor.CreateCommand{
+func (a *Actors) Create(ctx context.Context, id string, name string, x, y int) error {
+	if err := a.commandBus.Dispatch(ctx, &actor.CreateCommand{
 		ActorID: id,
 		Name:    name,
 		X:       x,
@@ -25,8 +25,8 @@ func (a *Actors) Create(_ context.Context, id string, name string, x, y int) err
 	return nil
 }
 
-func (a *Actors) Move(_ context.Context, id string, x, y int) error {
-	if err := a.commandBus.Dispatch(&actor.MoveCommand{
+func (a *Actors) Move(ctx context.Context, id string, x, y int) error {
+	if err := a.commandBus.Dispatch(ctx, &actor.MoveCommand{
 		ActorID: id,
 		X:       x,
 		Y:       y,

@@ -1,6 +1,9 @@
 package aggr
 
-import "errors"
+import (
+	"context"
+	"errors"
+)
 
 var _ Model = &MockAggregate{}
 
@@ -35,7 +38,7 @@ func (a *MockAggregate) HandleCommand(c Command) (*Event, error) {
 	return a.CommandHandlerFunc(c)
 }
 
-func (a *MockAggregate) HandleEvent(e *Event) error {
+func (a *MockAggregate) HandleEvent(ctx context.Context, e *Event) error {
 	if a.EventHandlerFunc == nil {
 		return errors.New("EventHandlerFunc is not set")
 	}

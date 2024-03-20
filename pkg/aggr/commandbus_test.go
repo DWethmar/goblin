@@ -1,6 +1,7 @@
 package aggr
 
 import (
+	"context"
 	"reflect"
 	"testing"
 	"time"
@@ -9,7 +10,11 @@ import (
 func TestCommandBus_Dispatch(t *testing.T) {
 	t.Run("should dispatch command", func(t *testing.T) {
 		aggregateStore := &MockAggregateStore{
-			GetFunc: func(aggregateType, aggregateID string) (*Aggregate, error) {
+			GetFunc: func(ctx context.Context, aggregateType, aggregateID string) (*Aggregate, error) {
+				if ctx != context.TODO() {
+					t.Errorf("unexpected context: %v", ctx)
+				}
+
 				return &Aggregate{
 					Model: &MockAggregate{
 						ID: "1",
@@ -27,12 +32,12 @@ func TestCommandBus_Dispatch(t *testing.T) {
 				}, nil
 
 			},
-			SaveFunc: func(_ ...*Aggregate) error { return nil },
+			SaveFunc: func(_ context.Context, _ ...*Aggregate) error { return nil },
 		}
 
 		eventBus := &EventBus{}
 		commandBus := NewCommandBus(aggregateStore, eventBus)
-		err := commandBus.Dispatch(&MockCommand{})
+		err := commandBus.Dispatch(context.TODO(), &MockCommand{})
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}

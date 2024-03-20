@@ -1,6 +1,7 @@
 package actor
 
 import (
+	"context"
 	"reflect"
 	"testing"
 
@@ -156,6 +157,7 @@ func TestActor_HandleEvent(t *testing.T) {
 		events  []*aggr.Event
 	}
 	type args struct {
+		ctx   context.Context
 		event *aggr.Event
 	}
 	tests := []struct {
@@ -177,7 +179,7 @@ func TestActor_HandleEvent(t *testing.T) {
 				state:   tt.fields.state,
 				events:  tt.fields.events,
 			}
-			if err := a.HandleEvent(tt.args.event); (err != nil) != tt.wantErr {
+			if err := a.HandleEvent(tt.args.ctx, tt.args.event); (err != nil) != tt.wantErr {
 				t.Errorf("Actor.HandleEvent() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

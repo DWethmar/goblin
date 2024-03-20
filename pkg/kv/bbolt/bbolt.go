@@ -18,11 +18,10 @@ type DB struct {
 func (d *DB) Get(k []byte) ([]byte, error) {
 	var v []byte
 	return v, d.db.View(func(tx *bolt.Tx) error {
-		b, err := tx.CreateBucketIfNotExists(d.bucket)
-		if err != nil {
-			return err
+		b := tx.Bucket(d.bucket)
+		if b == nil {
+			return nil
 		}
-
 		v = b.Get(k)
 		return nil
 	})
@@ -34,7 +33,6 @@ func (d *DB) Put(i ...kv.Entry) error {
 		if err != nil {
 			return err
 		}
-
 		for _, e := range i {
 			if err := b.Put(e.Key, e.Value); err != nil {
 				return fmt.Errorf("putting key: %w", err)
@@ -47,11 +45,7 @@ func (d *DB) Put(i ...kv.Entry) error {
 
 func (d *DB) Delete(k []byte) error {
 	return d.db.Update(func(tx *bolt.Tx) error {
-		b, err := tx.CreateBucketIfNotExists(d.bucket)
-		if err != nil {
-			return err
-		}
-
+		b := tx.Bucket(d.bucket)
 		if b == nil {
 			return nil
 		}

@@ -1,6 +1,7 @@
 package aggr
 
 import (
+	"context"
 	"errors"
 	"fmt"
 )
@@ -14,7 +15,7 @@ type CommandBus struct {
 	eventBus       *EventBus
 }
 
-func (b *CommandBus) Dispatch(commands ...Command) error {
+func (b *CommandBus) Dispatch(ctx context.Context, commands ...Command) error {
 	aggregates := make([]*Aggregate, 0, len(commands))
 	events := make([]*Event, 0, len(commands))
 
@@ -31,10 +32,15 @@ func (b *CommandBus) Dispatch(commands ...Command) error {
 		// get aggregate from store if not cached
 		if aggregate == nil {
 			var err error
-			aggregate, err = b.aggregateStore.Get(command.AggregateType(), command.AggregateID())
+			aggregate, err = b.aggregateStore.Get(ctx, command.AggregateType(), command.AggregateID())
 			if err != nil {
 				return fmt.Errorf("failed to get aggregate: %w", err)
 			}
+
+			if aggregate == nil {
+				return fmt.Errorf("aggregate is nil")
+			}
+
 			aggregates = append(aggregates, aggregate)
 		}
 
@@ -43,19 +49,19 @@ func (b *CommandBus) Dispatch(commands ...Command) error {
 			return fmt.Errorf("failed to dispatch command: %w", err)
 		}
 
-		if err := aggregate.HandleEvent(event); err != nil {
+		if err := aggregate.HandleEvent(ctx, event); err != nil {
 			return fmt.Errorf("failed to dispatch command: %w", err)
 		}
 
 		events = append(events, event)
 	}
 
-	if err := b.aggregateStore.Save(aggregates...); err != nil {
+	if err := b.aggregateStore.Save(ctx, aggregates...); err != nil {
 		return fmt.Errorf("failed to save aggregate: %w", err)
 	}
 
 	for _, event := range events {
-		if err := b.eventBus.Publish(event); err != nil {
+		if err := b.eventBus.Publish(ctx, event); err != nil {
 			return fmt.Errorf("failed to publish event: %w", err)
 		}
 	}

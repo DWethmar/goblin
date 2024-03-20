@@ -8,8 +8,8 @@ import (
 	"github.com/dwethmar/goblin/pkg/aggr"
 )
 
-// ActorEventMatcher is a matcher that can be used to match events for the actor.
-var ActorEventMatcher = aggr.MatchEvents{
+// ActorEventsMatcher is a matcher that can be used to match all actor events.
+var ActorEventsMatcher = aggr.MatchEvents{
 	CreatedEventType,
 	DestroyedEventType,
 	MovedEventType,
@@ -17,8 +17,8 @@ var ActorEventMatcher = aggr.MatchEvents{
 
 // ActorSinkHandler returns a handler that can be used to handle events from
 // the event store and update the actor repository.
-func ActorSinkHandler(ctx context.Context, repo Repository) aggr.EventHandlerFunc {
-	return aggr.EventHandlerFunc(func(event *aggr.Event) error {
+func ActorSinkHandler(repo Repository) aggr.EventHandlerFunc {
+	return aggr.EventHandlerFunc(func(ctx context.Context, event *aggr.Event) error {
 		a, err := repo.Get(ctx, event.AggregateID)
 		if err != nil {
 			if errors.Is(err, ErrNotFound) { // actor not found, create it
@@ -34,7 +34,7 @@ func ActorSinkHandler(ctx context.Context, repo Repository) aggr.EventHandlerFun
 			}
 		}
 
-		if err := a.HandleEvent(event); err != nil {
+		if err := a.HandleEvent(ctx, event); err != nil {
 			return fmt.Errorf("apply event: %w", err)
 		}
 

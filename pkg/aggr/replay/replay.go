@@ -37,7 +37,7 @@ func (r *Replayer) Replay(ctx context.Context) error {
 				"data", event.Data,
 			)
 
-			if err := r.eventBus.Publish(event); err != nil {
+			if err := r.eventBus.Publish(ctx, event); err != nil {
 				return err
 			}
 		case err := <-errCh:

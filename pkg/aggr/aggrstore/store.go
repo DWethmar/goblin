@@ -1,6 +1,7 @@
 package aggrstore
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/dwethmar/goblin/pkg/aggr"
@@ -14,7 +15,7 @@ type Store struct {
 	factory    *Factory
 }
 
-func (s *Store) Get(aggregateType, aggregateID string) (*aggr.Aggregate, error) {
+func (s *Store) Get(ctx context.Context, aggregateType, aggregateID string) (*aggr.Aggregate, error) {
 	events, err := s.eventStore.List(aggregateID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list events: %w", err)
@@ -30,7 +31,7 @@ func (s *Store) Get(aggregateType, aggregateID string) (*aggr.Aggregate, error) 
 	}
 
 	for _, event := range events {
-		if err := aggregate.HandleEvent(event); err != nil {
+		if err := aggregate.HandleEvent(ctx, event); err != nil {
 			return nil, fmt.Errorf("failed to handle event on aggregate: %w", err)
 		}
 	}
@@ -38,7 +39,7 @@ func (s *Store) Get(aggregateType, aggregateID string) (*aggr.Aggregate, error) 
 	return aggregate, nil
 }
 
-func (s *Store) Save(a ...*aggr.Aggregate) error {
+func (s *Store) Save(ctx context.Context, a ...*aggr.Aggregate) error {
 	var events []*aggr.Event
 	for _, aggregate := range a {
 		events = append(events, aggregate.AggregateEvents()...)

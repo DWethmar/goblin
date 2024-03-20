@@ -1,6 +1,7 @@
 package actor
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -39,9 +40,16 @@ func (a *Actor) HandleCommand(cmd aggr.Command) (*aggr.Event, error) {
 		return nil, fmt.Errorf("actor deleted")
 	}
 
+	// if state is draft and command is not create, return error
+	if StateDraft.Is(a.state) {
+		if _, ok := cmd.(*CreateCommand); !ok {
+			return nil, fmt.Errorf("actor not created")
+		}
+	}
+
+	// if state is created and command is create, return error
 	if StateCreated.Is(a.state) {
-		switch cmd.(type) {
-		case *CreateCommand:
+		if _, ok := cmd.(*CreateCommand); ok {
 			return nil, fmt.Errorf("actor already created")
 		}
 	}
@@ -79,7 +87,7 @@ func (a *Actor) HandleCommand(cmd aggr.Command) (*aggr.Event, error) {
 	return nil, nil
 }
 
-func (a *Actor) HandleEvent(event *aggr.Event) error {
+func (a *Actor) HandleEvent(_ context.Context, event *aggr.Event) error {
 	switch event.Type {
 	case CreatedEventType:
 		data, ok := event.Data.(*CreatedEventData)
