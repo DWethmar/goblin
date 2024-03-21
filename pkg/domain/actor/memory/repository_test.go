@@ -2,6 +2,7 @@ package memory
 
 import (
 	"context"
+	"errors"
 	"reflect"
 	"sync"
 	"testing"
@@ -25,6 +26,7 @@ func TestRepository_Create(t *testing.T) {
 		args    args
 		want    *actor.Actor
 		wantErr bool
+		err     error
 	}{
 		{
 			name: "create actor",
@@ -75,9 +77,12 @@ func TestRepository_Create(t *testing.T) {
 				actorsSorted: tt.fields.actorsSorted,
 			}
 			got, err := r.Create(tt.args.ctx, tt.args.a)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.Create() error = %v, wantErr %v", err, tt.wantErr)
-				return
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("expected error")
+				} else if errors.Is(err, tt.err) {
+					t.Errorf("expected error %v, got %v", tt.err, err)
+				}
 			}
 
 			if diff := cmp.Diff(got, tt.want, cmp.AllowUnexported(actor.Actor{})); diff != "" {
@@ -102,6 +107,7 @@ func TestRepository_Get(t *testing.T) {
 		args    args
 		want    *actor.Actor
 		wantErr bool
+		err     error
 	}{
 		{
 			name: "get actor",
@@ -134,6 +140,7 @@ func TestRepository_Get(t *testing.T) {
 			},
 			want:    nil,
 			wantErr: true,
+			err:     actor.ErrNotFound,
 		},
 	}
 	for _, tt := range tests {
@@ -143,13 +150,18 @@ func TestRepository_Get(t *testing.T) {
 				actors:       tt.fields.actors,
 				actorsSorted: tt.fields.actorsSorted,
 			}
+
 			got, err := r.Get(tt.args.ctx, tt.args.id)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.Get() error = %v, wantErr %v", err, tt.wantErr)
-				return
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("expected error")
+				} else if !errors.Is(err, tt.err) {
+					t.Errorf("expected error %v, got %v", tt.err, err)
+				}
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Repository.Get() = %v, want %v", got, tt.want)
+
+			if diff := cmp.Diff(got, tt.want, cmp.AllowUnexported(actor.Actor{})); diff != "" {
+				t.Errorf("differs: (-got +want)\n%s", diff)
 			}
 		})
 	}
