@@ -43,7 +43,7 @@ var lsActorsCmd = &cobra.Command{
 		}
 		defer close()
 
-		actorService := g.ActorService()
+		actorService := g.ActorService
 		actors, err := actorService.List(ctx, offset, limit)
 		if err != nil {
 			return fmt.Errorf("listing actors: %w", err)

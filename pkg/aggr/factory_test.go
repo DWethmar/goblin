@@ -23,7 +23,7 @@ func TestFactory_Create(t *testing.T) {
 		f := NewFactory()
 		f.Register("test", func(aggregateID string) *Aggregate {
 			return &Aggregate{
-				Model: &MockAggregate{
+				Model: &MockModel{
 					ID: aggregateID,
 				},
 			}

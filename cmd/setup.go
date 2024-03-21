@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/dwethmar/goblin/pkg/aggr"
+	"github.com/dwethmar/goblin/pkg/aggr/command"
 	"github.com/dwethmar/goblin/pkg/aggr/es"
 	eventencoding "github.com/dwethmar/goblin/pkg/aggr/event/encoding"
 	eventkv "github.com/dwethmar/goblin/pkg/aggr/event/kv"
@@ -54,7 +55,7 @@ func SetupGame(ctx context.Context, c Config) (*game.Game, func() error, error) 
 
 	// Create the command bus
 	aggregateStore := es.NewStore(eventStore, aggregateFactory)
-	commandBus := aggr.NewCommandBus(aggregateStore, eventBus)
+	commandBus := command.NewBus(aggregateStore, eventBus)
 
 	// replay all events and rebuild the state
 	replayer := replay.New(c.Logger, eventStore, eventBus)

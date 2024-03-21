@@ -48,3 +48,24 @@ func (r *MockRepository) List(ctx context.Context, limit, offset int) ([]*Actor,
 	}
 	return r.ListFunc(ctx, limit, offset)
 }
+
+// NoopRepository is a mock implementation of the Repository interface that does nothing
+var NoopRepository = &MockRepository{
+	GetFunc: func(ctx context.Context, id string) (*Actor, error) {
+		return &Actor{
+			ID: id,
+		}, nil
+	},
+	CreateFunc: func(ctx context.Context, a *Actor) (*Actor, error) {
+		return a, nil
+	},
+	DeleteFunc: func(ctx context.Context, id string) error {
+		return nil
+	},
+	UpdateFunc: func(ctx context.Context, a *Actor) (*Actor, error) {
+		return a, nil
+	},
+	ListFunc: func(ctx context.Context, limit, offset int) ([]*Actor, error) {
+		return []*Actor{}, nil
+	},
+}

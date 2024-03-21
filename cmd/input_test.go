@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/dwethmar/goblin/pkg/aggr"
+	"github.com/dwethmar/goblin/pkg/aggr/command"
 	"github.com/dwethmar/goblin/pkg/domain/actor"
 	"github.com/dwethmar/goblin/pkg/game"
 	"github.com/dwethmar/goblin/pkg/services"
@@ -33,21 +34,11 @@ func TestExecInput(t *testing.T) {
 			SaveFunc: func(_ context.Context, _ ...*aggr.Aggregate) error { return nil },
 		}
 
-		commandBus := aggr.NewCommandBus(aggregateStore, aggr.NewEventBus())
-
-		g, err := game.New(ctx, game.Options{
+		commandBus := command.NewBus(aggregateStore, aggr.NewEventBus())
+		s := &game.InstructionProcessor{
 			Logger:       slog.Default(),
-			ActorService: services.NewActorService(nil, commandBus),
-		})
-		if err != nil {
-			t.Errorf("New() error = %v, want nil", err)
-			return
-		}
-
-		s := &game.Session{
-			Logger:      slog.Default(),
-			Game:        g,
-			AggregateID: "1",
+			ActorService: services.NewActorService(&actor.MockRepository{}, commandBus),
+			AggregateID:  "1",
 		}
 
 		if err := ExecInput(ctx, r, s); err != nil {
@@ -67,21 +58,12 @@ func TestExecInput(t *testing.T) {
 			},
 		}
 
-		commandBus := aggr.NewCommandBus(aggregateStore, aggr.NewEventBus())
+		commandBus := command.NewBus(aggregateStore, aggr.NewEventBus())
 
-		g, err := game.New(ctx, game.Options{
+		s := &game.InstructionProcessor{
 			Logger:       slog.Default(),
-			ActorService: services.NewActorService(nil, commandBus),
-		})
-		if err != nil {
-			t.Errorf("New() error = %v, want nil", err)
-			return
-		}
-
-		s := &game.Session{
-			Logger:      slog.Default(),
-			Game:        g,
-			AggregateID: "1",
+			ActorService: services.NewActorService(&actor.MockRepository{}, commandBus),
+			AggregateID:  "1",
 		}
 
 		if err := ExecInput(ctx, r, s); !errors.Is(err, errors.ErrUnsupported) {

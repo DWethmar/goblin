@@ -117,7 +117,7 @@ func TestActor_HandleCommand(t *testing.T) {
 				state: domain.StateCreated,
 			},
 			args: args{
-				cmd: &aggr.MockAggregate{},
+				cmd: &aggr.MockModel{},
 			},
 			want:    nil,
 			wantErr: true,

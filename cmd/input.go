@@ -10,7 +10,7 @@ import (
 )
 
 // ExecInput reads commands from the reader and executes the string commands on the game.
-func ExecInput(ctx context.Context, r io.Reader, s *game.Session) error {
+func ExecInput(ctx context.Context, r io.Reader, s *game.InstructionProcessor) error {
 	reader := bufio.NewReader(r)
 	inputChan := make(chan string)
 	errChan := make(chan error)
@@ -38,7 +38,7 @@ func ExecInput(ctx context.Context, r io.Reader, s *game.Session) error {
 			}
 			return err
 		case input := <-inputChan:
-			if err := s.Game.StringCommand(ctx, s, strings.Trim(input, "\n")); err != nil {
+			if err := s.Process(ctx, strings.TrimSpace(input)); err != nil {
 				return err
 			}
 		}

@@ -12,11 +12,11 @@ import (
 type Actors struct {
 	clock       *clock.Clock
 	actorReader actor.Reader
-	commandBus  aggr.CommandHandler
+	commandBus  aggr.CommandBus
 }
 
 func (a *Actors) Create(ctx context.Context, id string, name string, x, y int) error {
-	if _, err := a.commandBus.HandleCommand(ctx, &actor.CreateCommand{
+	if err := a.commandBus.HandleCommand(ctx, &actor.CreateCommand{
 		ActorID:   id,
 		Name:      name,
 		X:         x,
@@ -29,7 +29,7 @@ func (a *Actors) Create(ctx context.Context, id string, name string, x, y int) e
 }
 
 func (a *Actors) Move(ctx context.Context, id string, x, y int) error {
-	if _, err := a.commandBus.HandleCommand(ctx, &actor.MoveCommand{
+	if err := a.commandBus.HandleCommand(ctx, &actor.MoveCommand{
 		ActorID:   id,
 		X:         x,
 		Y:         y,
@@ -48,7 +48,7 @@ func (a *Actors) List(ctx context.Context, offset, limit int) ([]*actor.Actor, e
 	return a.actorReader.List(ctx, offset, limit)
 }
 
-func NewActorService(repo actor.Repository, commandBus aggr.CommandHandler) *Actors {
+func NewActorService(repo actor.Repository, commandBus aggr.CommandBus) *Actors {
 	return &Actors{
 		clock:       clock.New(),
 		actorReader: repo,

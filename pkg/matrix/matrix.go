@@ -1,3 +1,4 @@
+// Package matrix provides a simple 2D matrix implementation.
 package matrix
 
 type Matrix [][]int

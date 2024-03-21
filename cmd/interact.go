@@ -12,7 +12,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/dwethmar/goblin/pkg/game"
 	"github.com/spf13/cobra"
 )
 
@@ -73,13 +72,7 @@ var interactCmd = &cobra.Command{
 				r = os.Stdin
 			}
 
-			s := &game.Session{
-				Logger:      logger,
-				Game:        g,
-				AggregateID: aggregateId,
-			}
-
-			if err := ExecInput(ctx, r, s); err != nil {
+			if err := ExecInput(ctx, r, g.InstructionProcessor); err != nil {
 				if err != context.Canceled {
 					logger.Error("executing input", "err", err)
 				}

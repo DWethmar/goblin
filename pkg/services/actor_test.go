@@ -20,7 +20,7 @@ func TestActors_Move(t *testing.T) {
 	type fields struct {
 		clock       *clock.Clock
 		actorReader actor.Reader
-		commandBus  aggr.CommandHandler
+		commandBus  aggr.CommandBus
 	}
 	type args struct {
 		ctx context.Context
@@ -54,7 +54,7 @@ func TestActors_Get(t *testing.T) {
 	type fields struct {
 		clock       *clock.Clock
 		actorReader actor.Reader
-		commandBus  aggr.CommandHandler
+		commandBus  aggr.CommandBus
 	}
 	type args struct {
 		ctx context.Context
@@ -92,7 +92,7 @@ func TestActors_List(t *testing.T) {
 	type fields struct {
 		clock       *clock.Clock
 		actorReader actor.Reader
-		commandBus  aggr.CommandHandler
+		commandBus  aggr.CommandBus
 	}
 	type args struct {
 		ctx    context.Context
@@ -130,7 +130,7 @@ func TestActors_List(t *testing.T) {
 func TestNewActorService(t *testing.T) {
 	type args struct {
 		repo       actor.Repository
-		commandBus aggr.CommandHandler
+		commandBus aggr.CommandBus
 	}
 	tests := []struct {
 		name string

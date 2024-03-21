@@ -7,8 +7,8 @@ type CommandHandler interface {
 	HandleCommand(ctx context.Context, cmd Command) (*Event, error)
 }
 
-type CommandHandlerFunc func(cmd Command) (*Event, error)
+type CommandHandlerFunc func(context.Context, Command) (*Event, error)
 
-func (f CommandHandlerFunc) HandleCommand(cmd Command) (*Event, error) {
-	return f(cmd)
+func (f CommandHandlerFunc) HandleCommand(ctx context.Context, cmd Command) (*Event, error) {
+	return f(ctx, cmd)
 }

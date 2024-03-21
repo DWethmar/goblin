@@ -4,25 +4,32 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/dwethmar/goblin/pkg/services"
+	"github.com/dwethmar/goblin/pkg/domain/actor"
 )
+
+// Service defines an interface for any service that can process game instructions.
+type ActorService interface {
+	Create(ctx context.Context, aggregateID, name string, x, y int) error
+	Move(ctx context.Context, aggregateID string, x, y int) error
+	List(ctx context.Context, offset, limit int) ([]*actor.Actor, error)
+}
 
 type Options struct {
 	Logger       *slog.Logger
-	ActorService *services.Actors
+	ActorService ActorService
 }
 
 type Game struct {
-	logger       *slog.Logger
-	actorService *services.Actors
+	*InstructionProcessor
+	ActorService ActorService
 }
-
-// ActorService returns the actor service
-func (g *Game) ActorService() *services.Actors { return g.actorService }
 
 func New(ctx context.Context, opt Options) (*Game, error) {
 	return &Game{
-		logger:       opt.Logger,
-		actorService: opt.ActorService,
+		InstructionProcessor: &InstructionProcessor{
+			Logger:       opt.Logger,
+			ActorService: opt.ActorService,
+		},
+		ActorService: opt.ActorService,
 	}, nil
 }
