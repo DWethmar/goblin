@@ -4,6 +4,7 @@ import (
 	"context"
 )
 
+// AggregateStore is used to store and retrieve an aggregate.
 type AggregateStore interface {
 	// Get returns the aggregate by its type and ID. An Aggregate is always returned, even if it does not exist yet.
 	Get(ctx context.Context, aggregateType, aggregateID string) (*Aggregate, error)

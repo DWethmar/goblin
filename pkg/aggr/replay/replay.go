@@ -11,7 +11,7 @@ import (
 
 type Replayer struct {
 	logger     *slog.Logger
-	eventStore event.Store
+	eventStore event.Repository
 	eventBus   *aggr.EventBus
 }
 
@@ -31,8 +31,8 @@ func (r *Replayer) Replay(ctx context.Context) error {
 			r.logger.DebugContext(
 				ctx,
 				"replaying event",
-				"aggregate", event.AggregateID,
-				"type", event.Type,
+				"aggregat-id", event.AggregateID,
+				"type", event.EventType,
 				"version", event.Version,
 				"data", event.Data,
 			)
@@ -48,7 +48,7 @@ func (r *Replayer) Replay(ctx context.Context) error {
 	}
 }
 
-func New(logger *slog.Logger, eventStore event.Store, eventBus *aggr.EventBus) *Replayer {
+func New(logger *slog.Logger, eventStore event.Repository, eventBus *aggr.EventBus) *Replayer {
 	return &Replayer{
 		logger:     logger,
 		eventStore: eventStore,

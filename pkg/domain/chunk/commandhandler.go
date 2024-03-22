@@ -22,7 +22,7 @@ func CreateChunkCommandHandler(c *Chunk, cmd *CreateCommand) (*aggr.Event, error
 
 	return &aggr.Event{
 		AggregateID: cmd.ChunkID,
-		Type:        CreatedEventType,
+		EventType:   CreatedEventType,
 		Data: &CreatedEventData{
 			X:      cmd.X,
 			Y:      cmd.Y,

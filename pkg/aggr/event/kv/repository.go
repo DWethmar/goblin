@@ -8,9 +8,9 @@ import (
 	"github.com/dwethmar/goblin/pkg/kv"
 )
 
-var _ event.Store = &Store{}
+var _ event.Repository = &EventRepository{}
 
-type Store struct {
+type EventRepository struct {
 	kv           kv.DB
 	eventDecoder event.Decoder
 	eventEncoder event.Encoder
@@ -24,7 +24,7 @@ func eventIDPrefix(aggregateID string) []byte {
 	return []byte(fmt.Sprintf("%s-", aggregateID))
 }
 
-func (r *Store) Add(events []*aggr.Event) error {
+func (r *EventRepository) Add(events []*aggr.Event) error {
 	entries := make([]kv.Entry, len(events))
 	for i, event := range events {
 		b, err := r.eventEncoder.Encode(event)
@@ -45,7 +45,7 @@ func (r *Store) Add(events []*aggr.Event) error {
 	return nil
 }
 
-func (r *Store) List(aggregateID string) ([]*aggr.Event, error) {
+func (r *EventRepository) List(aggregateID string) ([]*aggr.Event, error) {
 	var events []*aggr.Event
 	if err := r.kv.IterateWithPrefix(eventIDPrefix(aggregateID), func(k, v []byte) error {
 		event, err := r.eventDecoder.Decode(v)
@@ -62,7 +62,7 @@ func (r *Store) List(aggregateID string) ([]*aggr.Event, error) {
 }
 
 // All returns all events in the store.
-func (r *Store) All(errCh chan<- error) <-chan *aggr.Event {
+func (r *EventRepository) All(errCh chan<- error) <-chan *aggr.Event {
 	outCh := make(chan *aggr.Event)
 	go func() {
 		defer close(outCh)
@@ -82,8 +82,8 @@ func (r *Store) All(errCh chan<- error) <-chan *aggr.Event {
 func New(kv kv.DB,
 	eventDecoder event.Decoder,
 	eventEncoder event.Encoder,
-) *Store {
-	return &Store{
+) *EventRepository {
+	return &EventRepository{
 		kv:           kv,
 		eventDecoder: eventDecoder,
 		eventEncoder: eventEncoder,

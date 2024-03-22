@@ -38,7 +38,7 @@ func TestActorSinkHandler(t *testing.T) {
 
 		event := &aggr.Event{
 			AggregateID: "1",
-			Type:        CreatedEventType,
+			EventType:   CreatedEventType,
 			Data:        &CreatedEventData{Name: "test"},
 			Timestamp:   time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 		}

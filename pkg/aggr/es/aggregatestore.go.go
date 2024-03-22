@@ -1,3 +1,5 @@
+// Package es provides a way to store and retrieve aggregates
+// with eventsourcing.
 package es
 
 import (
@@ -8,15 +10,15 @@ import (
 	"github.com/dwethmar/goblin/pkg/aggr/event"
 )
 
-var _ aggr.AggregateStore = &Store{}
+var _ aggr.AggregateStore = &AggregateStore{}
 
-type Store struct {
-	eventStore event.Store
-	factory    *aggr.Factory
+type AggregateStore struct {
+	eventRepository event.Repository
+	factory         *aggr.Factory
 }
 
-func (s *Store) Get(ctx context.Context, aggregateType, aggregateID string) (*aggr.Aggregate, error) {
-	events, err := s.eventStore.List(aggregateID)
+func (s *AggregateStore) Get(ctx context.Context, aggregateType, aggregateID string) (*aggr.Aggregate, error) {
+	events, err := s.eventRepository.List(aggregateID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list events: %w", err)
 	}
@@ -39,7 +41,7 @@ func (s *Store) Get(ctx context.Context, aggregateType, aggregateID string) (*ag
 	return aggregate, nil
 }
 
-func (s *Store) Save(ctx context.Context, a ...*aggr.Aggregate) error {
+func (s *AggregateStore) Save(ctx context.Context, a ...*aggr.Aggregate) error {
 	var events []*aggr.Event
 	for _, aggregate := range a {
 		events = append(events, aggregate.AggregateEvents()...)
@@ -49,16 +51,16 @@ func (s *Store) Save(ctx context.Context, a ...*aggr.Aggregate) error {
 		return nil
 	}
 
-	if err := s.eventStore.Add(events); err != nil {
+	if err := s.eventRepository.Add(events); err != nil {
 		return fmt.Errorf("failed to save events: %w", err)
 	}
 
 	return nil
 }
 
-func NewStore(eventStore event.Store, factory *aggr.Factory) *Store {
-	return &Store{
-		eventStore: eventStore,
-		factory:    factory,
+func NewAggregateStore(eventRepository event.Repository, factory *aggr.Factory) *AggregateStore {
+	return &AggregateStore{
+		eventRepository: eventRepository,
+		factory:         factory,
 	}
 }

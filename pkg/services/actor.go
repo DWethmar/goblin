@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/dwethmar/goblin/pkg/aggr"
@@ -16,6 +17,15 @@ type Actors struct {
 }
 
 func (a *Actors) Create(ctx context.Context, id string, name string, x, y int) error {
+	//check if actor already exists
+	if r, err := a.actorReader.Get(ctx, id); err == nil {
+		if r != nil {
+			return fmt.Errorf("actor with id %s already exists", id)
+		}
+
+		return errors.New("error getting actor")
+	}
+
 	if err := a.commandBus.HandleCommand(ctx, &actor.CreateCommand{
 		ActorID:   id,
 		Name:      name,

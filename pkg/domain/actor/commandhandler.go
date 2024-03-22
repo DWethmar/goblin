@@ -21,7 +21,7 @@ func CreateCommandHandler(a *Actor, cmd *CreateCommand) (*aggr.Event, error) {
 
 	return &aggr.Event{
 		AggregateID: cmd.ActorID,
-		Type:        CreatedEventType,
+		EventType:   CreatedEventType,
 		Data: &CreatedEventData{
 			Name: cmd.Name,
 			X:    cmd.X,
@@ -43,7 +43,7 @@ func DestroyCommandHandler(a *Actor, cmd *DestroyCommand) (*aggr.Event, error) {
 
 	return &aggr.Event{
 		AggregateID: cmd.ActorID,
-		Type:        DestroyedEventType,
+		EventType:   DestroyedEventType,
 		Data:        nil,
 		Version:     a.Version + 1,
 		Timestamp:   cmd.CommandTimestamp(),
@@ -53,7 +53,7 @@ func DestroyCommandHandler(a *Actor, cmd *DestroyCommand) (*aggr.Event, error) {
 func MoveCommandHandler(a *Actor, cmd *MoveCommand) (*aggr.Event, error) {
 	return &aggr.Event{
 		AggregateID: cmd.ActorID,
-		Type:        MovedEventType,
+		EventType:   MovedEventType,
 		Data: &MovedEventData{
 			X: cmd.X,
 			Y: cmd.Y,

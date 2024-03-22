@@ -79,7 +79,7 @@ func (c *Chunk) HandleEvent(_ context.Context, event *aggr.Event) error {
 		return fmt.Errorf("invalid event: %w", err)
 	}
 
-	switch event.Type {
+	switch event.EventType {
 	case CreatedEventType:
 		return HandleCreatedEvent(c, event)
 	}

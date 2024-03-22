@@ -54,8 +54,8 @@ func SetupGame(ctx context.Context, c Config) (*game.Game, func() error, error) 
 	aggregateFactory := aggr.NewFactory(actor.RegisterFactory, chunk.RegisterFactory)
 
 	// Create the command bus
-	aggregateStore := es.NewStore(eventStore, aggregateFactory)
-	commandBus := command.NewBus(aggregateStore, eventBus)
+	aggregateStore := es.NewAggregateStore(eventStore, aggregateFactory)
+	commandBus := command.NewCommandBus(aggregateStore, eventBus)
 
 	// replay all events and rebuild the state
 	replayer := replay.New(c.Logger, eventStore, eventBus)

@@ -26,19 +26,18 @@ type Actor struct {
 	Version uint
 	Name    string
 	X, Y    int
-
-	state  domain.State
-	events []*aggr.Event
+	State   domain.State
+	Events  []*aggr.Event
 }
 
 func New(id, name string, x, y int) *Actor {
 	return &Actor{
 		ID:     id,
 		Name:   name,
-		state:  domain.StateDraft,
+		State:  domain.StateDraft,
 		X:      x,
 		Y:      y,
-		events: []*aggr.Event{},
+		Events: []*aggr.Event{},
 	}
 }
 
@@ -50,19 +49,19 @@ func (a *Actor) HandleCommand(ctx context.Context, cmd aggr.Command) (*aggr.Even
 		return nil, ErrNilCommand
 	}
 
-	if domain.StateDeleted.Is(a.state) {
+	if domain.StateDeleted.Is(a.State) {
 		return nil, ErrActorIsDeleted
 	}
 
 	// if state is draft and command is not create, return error
-	if domain.StateDraft.Is(a.state) {
+	if domain.StateDraft.Is(a.State) {
 		if _, ok := cmd.(*CreateCommand); !ok {
 			return nil, ErrActorDoesNotExist
 		}
 	}
 
 	// if state is created and command is create, return error
-	if domain.StateCreated.Is(a.state) {
+	if domain.StateCreated.Is(a.State) {
 		if _, ok := cmd.(*CreateCommand); ok {
 			return nil, ErrActorAlreadyCreated
 		}
@@ -86,7 +85,7 @@ func (a *Actor) HandleEvent(_ context.Context, event *aggr.Event) error {
 	}
 
 	var err error
-	switch event.Type {
+	switch event.EventType {
 	case CreatedEventType:
 		err = HandleCreatedEvent(a, event)
 	case DestroyedEventType:
@@ -94,7 +93,7 @@ func (a *Actor) HandleEvent(_ context.Context, event *aggr.Event) error {
 	case MovedEventType:
 		err = HandleMovedEvent(a, event)
 	default:
-		return fmt.Errorf("unknown event type: %s", event.Type)
+		return fmt.Errorf("unknown event type: %s", event.EventType)
 	}
 
 	if err != nil {
@@ -102,10 +101,10 @@ func (a *Actor) HandleEvent(_ context.Context, event *aggr.Event) error {
 	}
 
 	a.Version = event.Version
-	a.events = append(a.events, event)
+	a.Events = append(a.Events, event)
 	return nil
 }
 
-func (a *Actor) AggregateEvents() []*aggr.Event { return a.events }
-func (a *Actor) ClearAggregateEvents()          { a.events = []*aggr.Event{} }
-func (a *Actor) Deleted() bool                  { return domain.StateDeleted.Is(a.state) }
+func (a *Actor) AggregateEvents() []*aggr.Event { return a.Events }
+func (a *Actor) ClearAggregateEvents()          { a.Events = []*aggr.Event{} }
+func (a *Actor) Deleted() bool                  { return domain.StateDeleted.Is(a.State) }

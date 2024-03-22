@@ -52,7 +52,7 @@ func TestExecInput(t *testing.T) {
 			},
 		}
 
-		commandBus := command.NewBus(aggregateStore, aggr.NewEventBus())
+		commandBus := command.NewCommandBus(aggregateStore, aggr.NewEventBus())
 
 		s := &game.InstructionProcessor{
 			Logger:       slog.Default(),

@@ -12,12 +12,22 @@ type handlerMatcherPair struct {
 }
 
 type EventBus struct {
-	handlers []handlerMatcherPair
+	handlers []*handlerMatcherPair
 }
 
 // Subscribe adds a new matcher and handler to the EventBus.
-func (bus *EventBus) Subscribe(matcher Matcher, handler EventHandler) {
-	bus.handlers = append(bus.handlers, handlerMatcherPair{matcher: matcher, handler: handler})
+func (bus *EventBus) Subscribe(matcher Matcher, handler EventHandler) func() {
+	p := &handlerMatcherPair{matcher: matcher, handler: handler}
+	bus.handlers = append(bus.handlers, p)
+
+	return func() { // Unsubscribe
+		for i, pair := range bus.handlers {
+			if pair == p {
+				bus.handlers = append(bus.handlers[:i], bus.handlers[i+1:]...)
+				return
+			}
+		}
+	}
 }
 
 // HandleEvent handles an event by calling the appropriate handler.

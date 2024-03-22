@@ -17,7 +17,7 @@ type MatchEvents []string
 // Match returns true if the event type is in the list of events.
 func (m MatchEvents) Match(event *Event) bool {
 	for _, e := range m {
-		if e == event.Type {
+		if e == event.EventType {
 			return true
 		}
 	}

@@ -9,14 +9,14 @@ import (
 	"github.com/dwethmar/goblin/pkg/aggr"
 )
 
-func TestBus_Dispatch(t *testing.T) {
+func TestCommandBus_Dispatch(t *testing.T) {
 	t.Run("should dispatch command", func(t *testing.T) {
 		a := &aggr.Aggregate{
 			Model: &aggr.MockModel{
 				CommandHandler: aggr.CommandHandlerFunc(func(_ context.Context, c aggr.Command) (*aggr.Event, error) {
 					return &aggr.Event{
 						AggregateID: c.AggregateID(),
-						Type:        "test",
+						EventType:   "test",
 						Data:        "test",
 						Version:     1,
 						Timestamp:   time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -32,7 +32,7 @@ func TestBus_Dispatch(t *testing.T) {
 		}
 
 		eventBus := &aggr.EventBus{}
-		Bus := NewBus(aggregateStore, eventBus)
+		Bus := NewCommandBus(aggregateStore, eventBus)
 		err := Bus.HandleCommand(context.TODO(), &aggr.MockCommand{
 			ID: "1",
 		})
@@ -48,7 +48,7 @@ func TestBus_Dispatch(t *testing.T) {
 				CommandHandler: aggr.CommandHandlerFunc(func(_ context.Context, c aggr.Command) (*aggr.Event, error) {
 					return &aggr.Event{
 						AggregateID: c.AggregateID(),
-						Type:        "test",
+						EventType:   "test",
 						Data:        "test",
 						Version:     1,
 						Timestamp:   time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -64,7 +64,7 @@ func TestBus_Dispatch(t *testing.T) {
 		}
 
 		eventBus := &aggr.EventBus{}
-		bus := NewBus(aggregateStore, eventBus)
+		bus := NewCommandBus(aggregateStore, eventBus)
 		err := bus.HandleCommand(context.TODO(), &aggr.MockCommand{
 			ID: "1",
 		})
@@ -78,12 +78,12 @@ func TestBus_Dispatch(t *testing.T) {
 	})
 }
 
-func TestNewBus(t *testing.T) {
+func TestNewCommandBus(t *testing.T) {
 	t.Run("should return new instance of Bus", func(t *testing.T) {
 		aggregateStore := &aggr.MockAggregateStore{}
 		eventBus := &aggr.EventBus{}
-		got := NewBus(aggregateStore, eventBus)
-		want := &Bus{
+		got := NewCommandBus(aggregateStore, eventBus)
+		want := &CommandBus{
 			aggregateStore: aggregateStore,
 			eventBus:       eventBus,
 		}

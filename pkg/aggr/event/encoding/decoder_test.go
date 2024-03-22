@@ -12,7 +12,7 @@ func TestDecoder_Decode(t *testing.T) {
 		decoder := &Decoder{}
 		event := &aggr.Event{
 			AggregateID: "aggregateID",
-			Type:        "type",
+			EventType:   "type",
 			Data:        []byte("data"),
 		}
 

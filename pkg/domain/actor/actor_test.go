@@ -185,7 +185,7 @@ func TestActor_HandleCommand(t *testing.T) {
 			},
 			want: &aggr.Event{
 				AggregateID: "123",
-				Type:        DestroyedEventType,
+				EventType:   DestroyedEventType,
 				Data:        nil,
 				Version:     1,
 				Timestamp:   time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -201,8 +201,8 @@ func TestActor_HandleCommand(t *testing.T) {
 				Name:    tt.fields.Name,
 				X:       tt.fields.X,
 				Y:       tt.fields.Y,
-				state:   tt.fields.state,
-				events:  tt.fields.events,
+				State:   tt.fields.state,
+				Events:  tt.fields.events,
 			}
 			got, err := a.HandleCommand(tt.args.ctx, tt.args.cmd)
 			if (err != nil) != tt.wantErr {
@@ -252,8 +252,8 @@ func TestActor_HandleEvent(t *testing.T) {
 				Name:    tt.fields.Name,
 				X:       tt.fields.X,
 				Y:       tt.fields.Y,
-				state:   tt.fields.state,
-				events:  tt.fields.events,
+				State:   tt.fields.state,
+				Events:  tt.fields.events,
 			}
 			if err := a.HandleEvent(tt.args.ctx, tt.args.event); (err != nil) != tt.wantErr {
 				t.Errorf("Actor.HandleEvent() error = %v, wantErr %v", err, tt.wantErr)
@@ -287,8 +287,8 @@ func TestActor_AggregateEvents(t *testing.T) {
 				Name:    tt.fields.Name,
 				X:       tt.fields.X,
 				Y:       tt.fields.Y,
-				state:   tt.fields.state,
-				events:  tt.fields.events,
+				State:   tt.fields.state,
+				Events:  tt.fields.events,
 			}
 			if got := a.AggregateEvents(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Actor.AggregateEvents() = %v, want %v", got, tt.want)
@@ -321,8 +321,8 @@ func TestActor_ClearAggregateEvents(t *testing.T) {
 				Name:    tt.fields.Name,
 				X:       tt.fields.X,
 				Y:       tt.fields.Y,
-				state:   tt.fields.state,
-				events:  tt.fields.events,
+				State:   tt.fields.state,
+				Events:  tt.fields.events,
 			}
 			a.ClearAggregateEvents()
 		})
@@ -354,8 +354,8 @@ func TestActor_Deleted(t *testing.T) {
 				Name:    tt.fields.Name,
 				X:       tt.fields.X,
 				Y:       tt.fields.Y,
-				state:   tt.fields.state,
-				events:  tt.fields.events,
+				State:   tt.fields.state,
+				Events:  tt.fields.events,
 			}
 			if got := a.Deleted(); got != tt.want {
 				t.Errorf("Actor.Deleted() = %v, want %v", got, tt.want)
@@ -370,10 +370,10 @@ func TestNew(t *testing.T) {
 		want := &Actor{
 			ID:     "1",
 			Name:   "test",
-			state:  domain.StateDraft,
+			State:  domain.StateDraft,
 			X:      1,
 			Y:      1,
-			events: []*aggr.Event{},
+			Events: []*aggr.Event{},
 		}
 		if diff := cmp.Diff(got, want, cmp.AllowUnexported(Actor{})); diff != "" {
 			t.Errorf("New() mismatch (-want +got):\n%s", diff)

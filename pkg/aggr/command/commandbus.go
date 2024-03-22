@@ -7,13 +7,15 @@ import (
 	"github.com/dwethmar/goblin/pkg/aggr"
 )
 
-// Bus applies commands to aggregates and publishes events.
-type Bus struct {
+var _ aggr.CommandBus = &CommandBus{}
+
+// CommandBus applies commands to aggregates and publishes events.
+type CommandBus struct {
 	aggregateStore aggr.AggregateStore
 	eventBus       aggr.EventHandler
 }
 
-func (b *Bus) HandleCommand(ctx context.Context, cmd aggr.Command) error {
+func (b *CommandBus) HandleCommand(ctx context.Context, cmd aggr.Command) error {
 	a, err := b.aggregateStore.Get(ctx, cmd.AggregateType(), cmd.AggregateID())
 	if err != nil {
 		return fmt.Errorf("failed to get aggregate from store: %w", err)
@@ -23,9 +25,7 @@ func (b *Bus) HandleCommand(ctx context.Context, cmd aggr.Command) error {
 		return fmt.Errorf("aggregate is nil")
 	}
 
-	defer func() {
-		a.ClearAggregateEvents()
-	}()
+	defer a.ClearAggregateEvents()
 
 	event, err := a.HandleCommand(ctx, cmd)
 	if err != nil {
@@ -47,9 +47,9 @@ func (b *Bus) HandleCommand(ctx context.Context, cmd aggr.Command) error {
 	return nil
 }
 
-// NewBus returns a new instance of CommandBus.
-func NewBus(aggregateStore aggr.AggregateStore, eventBus aggr.EventHandler) *Bus {
-	return &Bus{
+// NewCommandBus returns a new instance of CommandBus.
+func NewCommandBus(aggregateStore aggr.AggregateStore, eventBus aggr.EventHandler) *CommandBus {
+	return &CommandBus{
 		aggregateStore: aggregateStore,
 		eventBus:       eventBus,
 	}

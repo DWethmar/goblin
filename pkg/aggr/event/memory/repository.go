@@ -7,7 +7,7 @@ import (
 	"github.com/dwethmar/goblin/pkg/aggr/event"
 )
 
-var _ event.Store = &EventRepository{}
+var _ event.Repository = &EventRepository{}
 
 type EventRepository struct {
 	eventsMux sync.Mutex
