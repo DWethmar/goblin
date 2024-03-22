@@ -111,6 +111,34 @@ func TestWorkerSink_ProcessEvent(t *testing.T) {
 			t.Errorf("Expected %d event handler calls, got %d", expected, actual)
 		}
 	})
+
+	t.Run("check if every event is processed by the same handler", func(t *testing.T) {
+		expected := []string{"1", "1", "3", "3"}
+		actual := []string{}
+
+		handler := aggr.EventHandlerFunc(func(_ context.Context, e *aggr.Event) error {
+			actual = append(actual, e.AggregateID)
+			return nil
+		})
+
+		handler2 := aggr.EventHandlerFunc(func(_ context.Context, e *aggr.Event) error {
+			return nil
+		})
+
+		ws := NewWorkerSink([]aggr.EventHandler{handler, handler2})
+
+		for _, id := range []string{"1", "1", "2", "2", "3", "3", "4", "4"} {
+			ws.ProcessEvent(context.Background(), &aggr.Event{
+				AggregateID: id, // 1 and 3 are oneven, 2 and 4 are even. This results in the same handler being called for 1 and 3, and 2 and 4.
+			})
+		}
+
+		ws.Close()
+
+		if !reflect.DeepEqual(expected, actual) {
+			t.Errorf("Expected %v to be processed by the same handler, got %v", expected, actual)
+		}
+	})
 }
 
 func TestWorkerSink_getWorkerIndex(t *testing.T) {

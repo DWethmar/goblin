@@ -2,6 +2,7 @@ package game
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"testing"
 
@@ -86,7 +87,11 @@ func TestInstructionProcessor_create(t *testing.T) {
 				Logger:      slog.Default(),
 				AggregateID: "1",
 				ActorService: services.NewActorService(
-					actor.NoopRepository,
+					&actor.MockRepository{
+						GetFunc: func(ctx context.Context, id string) (*actor.Actor, error) {
+							return nil, errors.New("could not find actor")
+						},
+					},
 					aggr.NoopCommandBus,
 				),
 			},

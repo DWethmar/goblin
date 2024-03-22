@@ -1,3 +1,4 @@
+// Package sink provides a simple event sink that distributes events to multiple handlers based on the aggregate ID.
 package sink
 
 import (
