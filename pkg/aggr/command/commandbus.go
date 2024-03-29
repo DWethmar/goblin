@@ -29,19 +29,19 @@ func (b *CommandBus) HandleCommand(ctx context.Context, cmd aggr.Command) error 
 
 	event, err := a.HandleCommand(ctx, cmd)
 	if err != nil {
-		return fmt.Errorf("failed to use command on aggregate: %w", err)
+		return fmt.Errorf("aggregate failed to handle command: %w", err)
 	}
 
 	if err := a.HandleEvent(ctx, event); err != nil {
-		return fmt.Errorf("failed to apply event on aggregate: %w", err)
+		return fmt.Errorf("aggregate failed to handle event: %w", err)
 	}
 
 	if err := b.aggregateStore.Save(ctx, a); err != nil {
-		return fmt.Errorf("failed to save aggregate: %w", err)
+		return fmt.Errorf("aggregate failed to save: %w", err)
 	}
 
 	if err := b.eventBus.HandleEvent(ctx, event); err != nil {
-		return fmt.Errorf("failed to publish event: %w", err)
+		return fmt.Errorf("event bus failed to handle event: %w", err)
 	}
 
 	return nil

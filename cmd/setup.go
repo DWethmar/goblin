@@ -11,13 +11,13 @@ import (
 	"github.com/dwethmar/goblin/pkg/aggr/es"
 	eventencoding "github.com/dwethmar/goblin/pkg/aggr/event/encoding"
 	eventkv "github.com/dwethmar/goblin/pkg/aggr/event/kv"
-	"github.com/dwethmar/goblin/pkg/aggr/replay"
 	"github.com/dwethmar/goblin/pkg/domain/actor"
 	actormemory "github.com/dwethmar/goblin/pkg/domain/actor/memory"
 	"github.com/dwethmar/goblin/pkg/domain/chunk"
 	chunkmemory "github.com/dwethmar/goblin/pkg/domain/chunk/memory"
 	"github.com/dwethmar/goblin/pkg/game"
 	"github.com/dwethmar/goblin/pkg/kv/bbolt"
+	"github.com/dwethmar/goblin/pkg/replay"
 	"github.com/dwethmar/goblin/pkg/services"
 )
 
