@@ -73,7 +73,7 @@ func (r *Repository) Update(ctx context.Context, a *actor.Actor) (*actor.Actor, 
 }
 
 // List implements actor.Repository.
-func (r *Repository) List(ctx context.Context, offset, limit int) ([]*actor.Actor, error) {
+func (r *Repository) List(ctx context.Context, limit, offset int) ([]*actor.Actor, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 

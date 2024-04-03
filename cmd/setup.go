@@ -15,9 +15,9 @@ import (
 	actormemory "github.com/dwethmar/goblin/pkg/domain/actor/memory"
 	"github.com/dwethmar/goblin/pkg/domain/chunk"
 	chunkmemory "github.com/dwethmar/goblin/pkg/domain/chunk/memory"
+	"github.com/dwethmar/goblin/pkg/domain/replay"
 	"github.com/dwethmar/goblin/pkg/game"
 	"github.com/dwethmar/goblin/pkg/kv/bbolt"
-	"github.com/dwethmar/goblin/pkg/replay"
 	"github.com/dwethmar/goblin/pkg/services"
 )
 
@@ -59,7 +59,7 @@ func SetupGame(ctx context.Context, c Config) (*game.Game, func() error, error) 
 
 	// replay all events and rebuild the state
 	replayer := replay.New(c.Logger, eventStore, eventBus)
-	if err := replayer.Replay(ctx); err != nil {
+	if err := replayer.Replay(ctx, actorRepo, chunkRepo); err != nil {
 		return nil, nil, fmt.Errorf("replaying events: %w", err)
 	}
 

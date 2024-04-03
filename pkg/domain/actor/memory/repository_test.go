@@ -320,7 +320,7 @@ func TestRepository_List(t *testing.T) {
 				actors:       tt.fields.actors,
 				actorsSorted: tt.fields.actorsSorted,
 			}
-			got, err := r.List(tt.args.ctx, tt.args.offset, tt.args.limit)
+			got, err := r.List(tt.args.ctx, tt.args.limit, tt.args.offset)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Repository.List() error = %v, wantErr %v", err, tt.wantErr)
 				return
