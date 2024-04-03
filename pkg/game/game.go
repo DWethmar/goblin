@@ -11,7 +11,7 @@ import (
 type ActorService interface {
 	Create(ctx context.Context, aggregateID, name string, x, y int) error
 	Move(ctx context.Context, aggregateID string, x, y int) error
-	List(ctx context.Context, offset, limit int) ([]*actor.Actor, error)
+	List(ctx context.Context, limit, offset int) ([]*actor.Actor, error)
 }
 
 type Options struct {

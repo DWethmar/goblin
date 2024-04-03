@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "cmd exec",
+            "name": "interact",
             "type": "go",
             "request": "launch",
             "mode": "auto",
@@ -16,6 +16,18 @@
                 "1",
                 "-f",
                 "test.txt"
+            ]
+        },
+        {
+            "name": "ls",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}",
+            "args": [
+                "ls",
+                "actors",
+                "-H",
             ]
         },
     ]

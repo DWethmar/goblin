@@ -54,8 +54,8 @@ func (a *Actors) Get(ctx context.Context, id string) (*actor.Actor, error) {
 	return a.actorReader.Get(ctx, id)
 }
 
-func (a *Actors) List(ctx context.Context, offset, limit int) ([]*actor.Actor, error) {
-	return a.actorReader.List(ctx, offset, limit)
+func (a *Actors) List(ctx context.Context, limit, offset int) ([]*actor.Actor, error) {
+	return a.actorReader.List(ctx, limit, offset)
 }
 
 func NewActorService(repo actor.Repository, commandBus aggr.CommandBus) *Actors {
