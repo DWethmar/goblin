@@ -18,7 +18,6 @@ type EventRepository struct {
 func (r *EventRepository) Add(events []*aggr.Event) error {
 	r.eventsMux.Lock()
 	defer r.eventsMux.Unlock()
-
 	r.events = append(r.events, events...)
 	return nil
 }
@@ -27,7 +26,6 @@ func (r *EventRepository) Add(events []*aggr.Event) error {
 func (r *EventRepository) List(aggregateID string) ([]*aggr.Event, error) {
 	r.eventsMux.Lock()
 	defer r.eventsMux.Unlock()
-
 	events := make([]*aggr.Event, 0)
 	for _, event := range r.events {
 		if event.AggregateID == aggregateID {

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/dwethmar/goblin/pkg/aggr"
 	"github.com/dwethmar/goblin/pkg/clock"
@@ -33,7 +34,7 @@ func TestActors_Create(t *testing.T) {
 		{
 			name: "create actor should not return error",
 			fields: fields{
-				clock: clock.New(),
+				clock: clock.New(time.UTC),
 				actorReader: &actor.MockRepository{
 					GetFunc: func(_ context.Context, _ string) (*actor.Actor, error) {
 						return nil, errors.New("could nto find actor")
@@ -57,7 +58,7 @@ func TestActors_Create(t *testing.T) {
 		{
 			name: "create actor already exists",
 			fields: fields{
-				clock: clock.New(),
+				clock: clock.New(time.UTC),
 				actorReader: &actor.MockRepository{
 					GetFunc: func(_ context.Context, _ string) (*actor.Actor, error) {
 						return &actor.Actor{}, nil
@@ -76,7 +77,7 @@ func TestActors_Create(t *testing.T) {
 		{
 			name: "if the existance of the actor could not be checked, an error should be returned",
 			fields: fields{
-				clock: clock.New(),
+				clock: clock.New(time.UTC),
 				actorReader: &actor.MockRepository{
 					GetFunc: func(_ context.Context, _ string) (*actor.Actor, error) {
 						return nil, nil
@@ -96,7 +97,7 @@ func TestActors_Create(t *testing.T) {
 		{
 			name: "error should be retunrned if actor could not be created",
 			fields: fields{
-				clock: clock.New(),
+				clock: clock.New(time.UTC),
 				actorReader: &actor.MockRepository{
 					GetFunc: func(_ context.Context, _ string) (*actor.Actor, error) {
 						return nil, errors.New("could nto find actor")

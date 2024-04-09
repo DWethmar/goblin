@@ -67,6 +67,11 @@ func (a *Actor) HandleCommand(ctx context.Context, cmd aggr.Command) (*aggr.Even
 		}
 	}
 
+	// if command timestamp is zero, return error
+	if cmd.CommandTimestamp().IsZero() {
+		return nil, fmt.Errorf("command timestamp can't be zero")
+	}
+
 	switch c := cmd.(type) {
 	case *CreateCommand:
 		return CreateCommandHandler(a, c)

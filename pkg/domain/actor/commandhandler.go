@@ -15,10 +15,6 @@ func CreateCommandHandler(a *Actor, cmd *CreateCommand) (*aggr.Event, error) {
 		return nil, fmt.Errorf("name can't be empty")
 	}
 
-	if cmd.CommandTimestamp().IsZero() {
-		return nil, fmt.Errorf("destroyed at can't be zero")
-	}
-
 	return &aggr.Event{
 		AggregateID: cmd.ActorID,
 		EventType:   CreatedEventType,
@@ -35,10 +31,6 @@ func CreateCommandHandler(a *Actor, cmd *CreateCommand) (*aggr.Event, error) {
 func DestroyCommandHandler(a *Actor, cmd *DestroyCommand) (*aggr.Event, error) {
 	if cmd.ActorID == "" {
 		return nil, fmt.Errorf("actor id can't be empty")
-	}
-
-	if cmd.CommandTimestamp().IsZero() {
-		return nil, fmt.Errorf("destroyed at can't be zero")
 	}
 
 	return &aggr.Event{

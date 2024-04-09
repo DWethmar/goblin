@@ -3,7 +3,7 @@ package conc
 import "fmt"
 
 type Task[T any] struct {
-	Group int // Group is used to determine which channel to send the task to.
+	Group uint // Group is used to determine which channel to send the task to.
 	Value T
 }
 
@@ -20,7 +20,7 @@ func GroupTasks[T any](in <-chan Task[T], n int) ([]chan T, error) {
 
 	go func() {
 		for task := range in {
-			i := task.Group % len(out)
+			i := int(task.Group) % len(out)
 			out[i] <- task.Value
 		}
 

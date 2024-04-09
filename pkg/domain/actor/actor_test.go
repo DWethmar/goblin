@@ -117,7 +117,9 @@ func TestActor_HandleCommand(t *testing.T) {
 				state: domain.StateCreated,
 			},
 			args: args{
-				cmd: &aggr.MockModel{},
+				cmd: &aggr.MockModel{
+					Timestamp: time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
+				},
 			},
 			want:    nil,
 			wantErr: true,

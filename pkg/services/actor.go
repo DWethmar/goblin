@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/dwethmar/goblin/pkg/aggr"
 	"github.com/dwethmar/goblin/pkg/clock"
@@ -60,7 +61,7 @@ func (a *Actors) List(ctx context.Context, limit, offset int) ([]*actor.Actor, e
 
 func NewActorService(repo actor.Repository, commandBus aggr.CommandBus) *Actors {
 	return &Actors{
-		clock:       clock.New(),
+		clock:       clock.New(time.UTC),
 		actorReader: repo,
 		commandBus:  commandBus,
 	}

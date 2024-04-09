@@ -40,7 +40,7 @@ func TestSink(t *testing.T) {
 				in:       in,
 				handlers: handlers,
 				errCh:    errCh,
-				groupIDFunc: func(aggregateID string) int {
+				groupIDFunc: func(aggregateID string) uint {
 					if aggregateID == "test1" {
 						return 0
 					}
